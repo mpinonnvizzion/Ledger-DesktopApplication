@@ -1,19 +1,24 @@
 # macOS
 .DS_Store
 
+# Windows
+Thumbs.db
+
 # Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# Node (future)
+# Node
 node_modules/
 dist/
 
-# Rust (future)
+# Rust / Tauri
 target/
+src-tauri/gen/
 
 # Environment
 .env
 .env.local
+.env.*.local

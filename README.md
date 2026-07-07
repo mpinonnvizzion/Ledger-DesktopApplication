@@ -44,20 +44,50 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 ## Project Status
 
-**Current Phase:** Sprint 0 — Documentation and Architecture Foundation
+**Current Phase:** Sprint 1 — Project Foundation (Complete)
 
-No application code has been written. Sprint 0 establishes the documentation, architecture decisions, and development process.
+The application shell is running: Tauri 2 desktop window with React frontend, sidebar navigation to four placeholder pages, and a working Rust command boundary.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 20+ and npm
+- Rust stable toolchain (`rustup`)
+- macOS: Xcode Command Line Tools
+- Windows: Visual Studio C++ Build Tools, WebView2
+
+### Development
+
+```bash
+npm install          # Install frontend dependencies
+npm run dev          # Launch app in development mode with HMR
+npm run build        # Production build (compile + bundle)
+npm run lint         # Lint frontend code
+npm run format:check # Check formatting
+npm run test         # Run frontend tests
+cd src-tauri && cargo test  # Run Rust tests
+```
 
 ## Repository Structure
 
 ```
+src/                  React frontend (TypeScript)
+  api/                Tauri invoke wrappers
+  components/layout/  App shell, sidebar, header
+  components/ui/      Reusable UI primitives
+  hooks/              Custom React hooks
+  lib/                Utilities, constants, types
+  pages/              Page-level components
+src-tauri/            Rust backend (Tauri 2)
+  src/commands/       Tauri command modules
 docs/
-  adr/                  Architecture Decision Records
-  business/             Business strategy and planning documents
-  product/              Product requirements
-  reference/            Reference materials (existing Ledger app)
-  specifications/       Feature and system specifications
-  sprint-notes/         Sprint retrospectives and notes
+  adr/                Architecture Decision Records
+  business/           Business strategy and planning documents
+  product/            Product requirements
+  reference/          Reference materials (existing Ledger app)
+  specifications/     Feature and system specifications
+  sprint-notes/       Sprint retrospectives and notes
 ```
 
 ## Key Documents

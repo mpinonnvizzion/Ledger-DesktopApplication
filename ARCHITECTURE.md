@@ -1,7 +1,7 @@
 # Ledger Desktop — Architecture Overview
 
 **Version:** 1.0
-**Status:** Sprint 0 — Documentation Foundation
+**Status:** Sprint 1 — Project Foundation
 
 ---
 

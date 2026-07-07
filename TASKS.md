@@ -21,72 +21,79 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 0: Documentation and Architecture Foundation (Current)
+## Sprint 0: Documentation and Architecture Foundation (Completed)
 
 **Objective:** Prepare the repository for disciplined product development. Documentation only — no application code.
 
-### Root Documents
-- [x] README.md
-- [x] PROJECT.md
-- [x] ARCHITECTURE.md
-- [x] TASKS.md
-- [x] CLAUDE.md
-- [x] CHANGELOG.md
-
-### Folder Structure
-- [x] `docs/adr/`
-- [x] `docs/specifications/`
-- [x] `docs/sprint-notes/`
-- [x] `docs/business/` (pre-existing)
-- [x] `docs/product/` (pre-existing)
-- [x] `docs/reference/` (pre-existing)
-
-### Architecture Decision Records
-- [x] ADR 0001: Documentation-first development process
-- [x] ADR 0002: Desktop-first architecture (Tauri 2)
-- [x] ADR 0003: Local-first data ownership (SQLite)
-- [x] ADR 0004: Offline-first core workflows
-- [x] ADR 0005: Plaid requires cloud relay
-- [x] ADR 0006: One-time purchase with optional subscriptions
-- [x] ADR 0007: Existing Ledger app as reference only
-
-### Specifications
-- [x] App Scope
-- [x] Data Model Overview
-- [x] Security Model
-- [x] Onboarding Flow
-- [x] Commercial Model
-- [x] Plaid Bank Sync
-- [x] Release and Distribution
-
-### Sprint Notes
+- [x] Root documents (README, PROJECT, ARCHITECTURE, TASKS, CLAUDE, CHANGELOG)
+- [x] Folder structure (docs/adr, docs/specifications, docs/sprint-notes)
+- [x] 7 Architecture Decision Records (ADR 0001–0007)
+- [x] 7 Specification documents
 - [x] Sprint 0 notes
-
-### Housekeeping
-- [x] Normalize business document filenames
-- [x] Verify consistency across all documents
+- [x] Business document filename normalization and UTF-8 encoding fix
 
 ---
 
-## Sprint 1: Project Foundation (Planned)
+## Sprint 1: Project Foundation (Current)
 
-**Objective:** Initialize the Ledger Desktop application structure.
+**Objective:** Establish the desktop application foundation. After Sprint 1, a developer can launch the Tauri desktop window, see a React frontend rendered inside it, navigate between placeholder pages, and invoke a Rust command from the frontend.
 
-- [ ] Create Tauri 2 project
-- [ ] Set up React with TypeScript
-- [ ] Set up Vite build system
-- [ ] Set up Tailwind CSS
-- [ ] Establish folder structure matching ARCHITECTURE.md
-- [ ] Create basic app shell with window and title bar
-- [ ] Add placeholder navigation (sidebar or top nav)
-- [ ] Add development scripts (dev, build, lint, format)
-- [ ] Add ESLint and Prettier configuration
-- [ ] Add initial test structure (Vitest for frontend, Rust tests for backend)
-- [ ] Verify app launches locally in Tauri
-- [ ] Update CHANGELOG.md
-- [ ] Write Sprint 1 notes
+**Implementation Plan:** [docs/sprint-notes/sprint-1.md](docs/sprint-notes/sprint-1.md)
 
-**Exit Criteria:** The app launches locally, the desktop shell opens, the frontend renders inside Tauri, basic routing exists, and the development workflow is repeatable.
+### Phase A: Project Bootstrap
+- [x] Initialize Tauri 2 project with React + TypeScript + Vite
+- [x] Configure `tauri.conf.json` (app name, bundle ID, window size)
+- [x] Verify bare Tauri window opens with default content
+- [x] Clean boilerplate, set up blank `App.tsx`
+
+### Phase B: Frontend Foundation
+- [x] Install and configure Tailwind CSS v4
+- [x] Define initial design tokens (colors, font stack)
+- [x] Set up TypeScript path aliases (`@/components`, `@/pages`, `@/lib`)
+- [x] Create folder structure (`src/api/`, `src/components/`, `src/pages/`, `src/hooks/`, `src/lib/`)
+- [x] Install React Router with hash-based routing
+- [x] Create four placeholder pages (Dashboard, Accounts, Transactions, Settings)
+- [x] Build app shell layout (sidebar navigation + header + content area)
+- [x] Wire sidebar navigation to routes
+
+### Phase C: Rust Command Boundary
+- [x] Create `src-tauri/src/commands/` directory
+- [x] Implement `greet` Tauri command in Rust
+- [x] Register command in `lib.rs`
+- [x] Create typed `src/api/client.ts` invoke wrapper
+- [x] Call greet from Settings page and display result
+
+### Phase D: Developer Tooling
+- [x] Install and configure ESLint (TypeScript + React)
+- [x] Install and configure Prettier
+- [x] Resolve ESLint/Prettier conflicts (`eslint-config-prettier`)
+- [x] Configure `rustfmt.toml` in `src-tauri/`
+- [x] Add npm scripts (dev, build, lint, lint:fix, format, format:check, test, test:watch)
+
+### Phase E: Testing Foundation
+- [x] Install and configure Vitest for frontend
+- [x] Write one frontend test (component render or utility)
+- [x] Write one Rust test (greet command logic)
+- [x] Verify all test commands pass
+
+### Phase F: Finalization
+- [x] Update `.gitignore` for full project
+- [x] Run full verification (dev, build, lint, format:check, test, cargo test)
+- [x] Update TASKS.md, CHANGELOG.md, ARCHITECTURE.md, README.md
+- [x] Finalize sprint-1 notes
+
+### Out of Scope
+- Account/transaction/category management (Sprint 2-3)
+- SQLite database setup or schema (Sprint 2)
+- Reports, budgets, goals (Sprint 5)
+- Onboarding, app lock, authentication (Sprint 6)
+- Invoicing, clients, vendors (Sprint 7)
+- Licensing, Stripe payments (Sprint 8)
+- Auto-updater, code signing, installers (Sprint 9)
+- Plaid bank sync (Sprint 10)
+- Cloud services of any kind
+
+**Exit Criteria:** The app launches locally, the desktop shell opens, the frontend renders inside Tauri with sidebar navigation to four placeholder pages, a Rust command is callable from the frontend, linting/formatting/tests pass, and the development workflow is repeatable.
 
 ---
 
