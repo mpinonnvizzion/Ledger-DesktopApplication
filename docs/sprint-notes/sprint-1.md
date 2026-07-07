@@ -110,7 +110,8 @@ Configure the following npm scripts in `package.json`:
 | Script | Command | Purpose |
 |--------|---------|---------|
 | `dev` | `tauri dev` | Launch app in development mode with HMR |
-| `build` | `tauri build` | Production build (compile + bundle) |
+| `build` | `tsc && vite build` | Frontend-only build (TypeScript + Vite) |
+| `tauri:build` | `tauri build` | Full desktop build (frontend + Rust + bundle) |
 | `lint` | `eslint src/` | Lint frontend TypeScript/React code |
 | `lint:fix` | `eslint src/ --fix` | Auto-fix lint issues |
 | `format` | `prettier --write src/` | Format frontend code |

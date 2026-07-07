@@ -60,12 +60,13 @@ The application shell is running: Tauri 2 desktop window with React frontend, si
 ### Development
 
 ```bash
-npm install          # Install frontend dependencies
-npm run dev          # Launch app in development mode with HMR
-npm run build        # Production build (compile + bundle)
-npm run lint         # Lint frontend code
-npm run format:check # Check formatting
-npm run test         # Run frontend tests
+npm install              # Install frontend dependencies
+npm run dev              # Launch Tauri app in development mode with HMR
+npm run build            # Frontend-only build (TypeScript + Vite)
+npm run tauri:build      # Full desktop build (frontend + Rust + bundle)
+npm run lint             # Lint frontend code
+npm run format:check     # Check formatting
+npm run test             # Run frontend tests
 cd src-tauri && cargo test  # Run Rust tests
 ```
 
