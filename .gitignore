@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node (future)
+node_modules/
+dist/
+
+# Rust (future)
+target/
+
+# Environment
+.env
+.env.local
