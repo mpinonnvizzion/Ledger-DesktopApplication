@@ -1,8 +1,14 @@
 # Ledger Desktop — Tasks and Sprint Tracking
 
+**Milestone Roadmap:** [docs/milestones.md](docs/milestones.md)
+
 ---
 
-## Phase -1: Business and Product Design (Completed)
+## Milestone 1: Application Foundation (Complete)
+
+Covers Sprint 0 and Sprint 1. See [milestone details](docs/milestones.md#milestone-1-application-foundation).
+
+### Phase -1: Business and Product Design (Completed)
 
 All Phase -1 documents are complete and serve as the source of truth for product direction.
 
@@ -19,9 +25,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 - [x] Product Requirements Document (`docs/product/PRODUCT_REQUIREMENTS.md`)
 - [x] Ledger v3 architecture reference (`docs/reference/Ledger_v3_Desktop_Architecture.docx`)
 
----
-
-## Sprint 0: Documentation and Architecture Foundation (Completed)
+### Sprint 0: Documentation and Architecture Foundation (Completed)
 
 **Objective:** Prepare the repository for disciplined product development. Documentation only — no application code.
 
@@ -32,9 +36,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 - [x] Sprint 0 notes
 - [x] Business document filename normalization and UTF-8 encoding fix
 
----
-
-## Sprint 1: Project Foundation (Current)
+### Sprint 1: Project Foundation (Completed)
 
 **Objective:** Establish the desktop application foundation. After Sprint 1, a developer can launch the Tauri desktop window, see a React frontend rendered inside it, navigate between placeholder pages, and invoke a Rust command from the frontend.
 
@@ -97,62 +99,63 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 2: Local Database Foundation (Planned)
+## Milestone 2: Local Data Platform (Planned)
 
-**Objective:** Create the local data foundation.
+Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-local-data-platform).
 
-- [ ] Set up SQLite with Rust backend
-- [ ] Implement migration system
+### Sprint 2: Database Foundation (Planned)
+
+**Objective:** Set up SQLite, migrations, and the database service abstraction.
+
+- [ ] SQLite integration in the Rust backend
 - [ ] Database initialization on first launch
-- [ ] Workspace table and CRUD commands
-- [ ] Account table and CRUD commands
-- [ ] Category table with seed/defaults
-- [ ] Transaction table and CRUD commands
-- [ ] Basic Tauri command layer for data access
-- [ ] Document database file location
-- [ ] Design backup/export approach
+- [ ] Migration system for schema evolution
+- [ ] Database service abstraction layer
+- [ ] Database file location documentation
+- [ ] Backup and export foundation
+- [ ] Version management for schema tracking
 - [ ] Verify data persists after app restart
-- [ ] Test foreign key behavior
 - [ ] Update CHANGELOG.md
 - [ ] Write Sprint 2 notes
 
 ---
 
-## Sprint 3: Core Finance Workflow (Planned)
+### Sprint 3: Core Domain Entities (Planned)
 
-**Objective:** Make Ledger useful for basic financial tracking.
+**Objective:** Define and implement the core domain entities behind a repository abstraction.
 
-- [ ] Dashboard shell with summary widgets
-- [ ] Account list view
-- [ ] Account detail view
-- [ ] Transaction list with pagination
-- [ ] Transaction create/edit/delete forms
-- [ ] Category assignment on transactions
+- [ ] Core domain entity definitions (workspaces, accounts, categories)
+- [ ] Repository pattern for data access
+- [ ] Account CRUD operations via Tauri commands
+- [ ] Category CRUD with seed/default data
+- [ ] Validation layer for domain entities
+- [ ] Local persistence architecture documentation
+- [ ] Foreign key behavior documented and tested
+- [ ] Update CHANGELOG.md
+- [ ] Write Sprint 3 notes
+
+---
+
+### Sprint 4: Transaction Engine (Planned)
+
+**Objective:** Build the transaction engine with search, filtering, and import foundation.
+
+- [ ] Transaction CRUD operations via Tauri commands
+- [ ] Transaction search capabilities
 - [ ] Transaction filtering (date, category, amount, account)
-- [ ] Transaction search
-- [ ] Workspace switcher
-- [ ] Manual account balance display
-- [ ] Recent transactions widget on dashboard
+- [ ] Import foundation (data layer for future CSV import UI)
+- [ ] Data integrity validation and constraints
+- [ ] Performance validation with representative datasets
+- [ ] Update CHANGELOG.md
+- [ ] Write Sprint 4 notes
 
 ---
 
-## Sprint 4: CSV Import and Data Ownership (Planned)
+## Milestone 3: Core Finance Features (Planned)
 
-**Objective:** Make Ledger practical for users who do not use bank sync.
+Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-core-finance-features).
 
-- [ ] CSV import flow with file picker
-- [ ] Column mapping UI
-- [ ] Import preview before commit
-- [ ] Duplicate detection
-- [ ] Import session tracking
-- [ ] Import error handling and validation
-- [ ] CSV export
-- [ ] Manual database backup workflow
-- [ ] Data ownership documentation for users
-
----
-
-## Sprint 5: Budgets, Goals, and Reports (Planned)
+### Sprint 5: Budgets, Goals, and Reports (Planned)
 
 **Objective:** Help users understand and plan their finances.
 
@@ -167,7 +170,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 6: Local Security and Onboarding (Planned)
+### Sprint 6: Local Security and Onboarding (Planned)
 
 **Objective:** Make Ledger feel safe, professional, and ready for real user data.
 
@@ -183,7 +186,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 7: Lightweight Business Finance (Planned)
+### Sprint 7: Lightweight Business Finance (Planned)
 
 **Objective:** Add freelancer and small business workflows.
 
@@ -199,7 +202,11 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 8: Commercial Readiness (Planned)
+## Milestone 4: Commercial Readiness (Planned)
+
+Covers Sprints 8, 9, 11, 12. See [milestone details](docs/milestones.md#milestone-4-commercial-readiness).
+
+### Sprint 8: Commercial Readiness (Planned)
 
 **Objective:** Prepare Ledger for paid distribution.
 
@@ -214,7 +221,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 9: Installer, Updates, and Distribution (Planned)
+### Sprint 9: Installer, Updates, and Distribution (Planned)
 
 **Objective:** Make Ledger installable and updateable.
 
@@ -231,25 +238,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 10: Plaid Relay and Bank Sync (Planned)
-
-**Objective:** Add optional subscription-based bank synchronization.
-
-- [ ] Cloud relay service implementation
-- [ ] Plaid Link token flow
-- [ ] Public token exchange
-- [ ] Transaction sync
-- [ ] Balance refresh
-- [ ] Subscription entitlement validation
-- [ ] Connected accounts UI
-- [ ] Sync status display
-- [ ] Institution repair flow
-- [ ] Plaid error handling
-- [ ] Plaid sandbox testing
-
----
-
-## Sprint 11: Beta Hardening (Planned)
+### Sprint 11: Beta Hardening (Planned)
 
 **Objective:** Prepare for external beta users.
 
@@ -266,7 +255,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Sprint 12: Public Launch Preparation (Planned)
+### Sprint 12: Public Launch Preparation (Planned)
 
 **Objective:** Prepare for initial public sale.
 
@@ -282,3 +271,25 @@ All Phase -1 documents are complete and serve as the source of truth for product
 - [ ] Support workflow
 - [ ] Public release checklist
 - [ ] Launch announcement
+
+---
+
+## Milestone 5: Optional Connected Services (Planned)
+
+Covers Sprint 10. See [milestone details](docs/milestones.md#milestone-5-optional-connected-services).
+
+### Sprint 10: Plaid Relay and Bank Sync (Planned)
+
+**Objective:** Add optional subscription-based bank synchronization.
+
+- [ ] Cloud relay service implementation
+- [ ] Plaid Link token flow
+- [ ] Public token exchange
+- [ ] Transaction sync
+- [ ] Balance refresh
+- [ ] Subscription entitlement validation
+- [ ] Connected accounts UI
+- [ ] Sync status display
+- [ ] Institution repair flow
+- [ ] Plaid error handling
+- [ ] Plaid sandbox testing

@@ -100,6 +100,10 @@ The current Ledger application (v3) is reference material only. It informs produ
 ### Product Documents
 - [Product Requirements](docs/product/PRODUCT_REQUIREMENTS.md)
 
+### Planning
+- [Milestones](docs/milestones.md)
+- [Tasks and Sprint Tracking](TASKS.md)
+
 ### Architecture
 - [Architecture Overview](ARCHITECTURE.md)
 - [Architecture Decision Records](docs/adr/)

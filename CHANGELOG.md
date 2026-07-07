@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Finalized milestone and sprint structure** (`docs/milestones.md` v2.1, `TASKS.md`, `docs/business/ROADMAP.md`)
+  - Milestone 2: Sprints 2, 3, 4 (Local Data Platform)
+  - Milestone 3: Sprints 5, 6, 7 (Core Finance Features)
+  - Milestone 4: Sprints 8, 9, 11, 12 (Commercial Readiness)
+  - Milestone 5: Sprint 10 (Optional Connected Services)
+  - Sprint 2 scoped as "Database Foundation" (SQLite, migrations, DB service)
+  - Sprint 3 scoped as "Core Domain Entities" (repository layer, accounts, categories)
+  - Sprint 4 scoped as "Transaction Engine" (CRUD, search, filtering, import foundation)
+  - Sprint 8 placed in Milestone 4 alongside packaging, distribution, and launch
+  - ROADMAP.md Sprint 2/3/4 definitions updated to match milestone structure
+  - Removed temporary re-scoping notes from milestones.md
+- Updated TASKS.md: Sprint 1 marked as completed, sprints organized under milestone headers
+
 ### Fixed
 - **Build script recursion**: `npm run build` no longer triggers `tauri build` (which re-invoked `npm run build` via `beforeBuildCommand`). `build` now runs frontend-only (`tsc && vite build`); full desktop build uses `npm run tauri:build`. Also fixed `beforeDevCommand` in `tauri.conf.json` to call `npx vite` directly instead of `npm run dev`.
 

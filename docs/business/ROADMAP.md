@@ -223,117 +223,107 @@ Sprint 1 is complete when:
 
 ---
 
-# Sprint 2: Local Database Foundation
+# Sprint 2: Database Foundation
 
 ## Objective
 
-Create the local data foundation.
+Set up the local database infrastructure that every data feature depends on.
 
 ## Scope
 
-* SQLite setup
-* Migration system
-* Database initialization
-* Workspace table
-* Account table
-* Category table
-* Transaction table
-* Basic data access commands
-* Seed/default categories
-* Database location documentation
-* Basic backup/export design
+* SQLite integration in the Rust backend
+* Database initialization on first launch
+* Migration system for schema evolution
+* Database service abstraction layer
+* Database file location documentation
+* Backup and export foundation
+* Version management for schema tracking
+* Data persistence verification across app restarts
 
 ## Out of Scope
 
+* Domain entity definitions (Sprint 3)
+* Repository pattern (Sprint 3)
+* Transaction engine (Sprint 4)
 * Plaid sync
 * Encryption
 * Invoicing
 * Reports
-* Advanced budgets
 * UI polish
 
 ## Exit Criteria
 
 Sprint 2 is complete when:
 
-* Ledger can create and open a local database.
-* Migrations run reliably.
-* Workspaces can be created.
-* Accounts can be created.
-* Categories can be created.
-* Transactions can be created.
+* Ledger can create and open a local SQLite database.
+* Migrations run reliably on first launch and on schema changes.
+* Database service abstraction isolates SQLite from the rest of the backend.
 * Data persists after app restart.
-* Foreign key behavior is documented and tested.
+* Database file location is documented.
+* Backup/export design is documented.
 
 ---
 
-# Sprint 3: Core Finance Workflow
+# Sprint 3: Core Domain Entities
 
 ## Objective
 
-Make Ledger useful for basic financial tracking.
+Define and implement the core domain entities behind a repository abstraction.
 
 ## Scope
 
-* Dashboard shell
-* Account list
-* Account detail
-* Transaction list
-* Transaction create/edit/delete
-* Category assignment
-* Basic transaction filters
-* Search
-* Workspace switcher
-* Manual account balances
-* Recent transactions widget
+* Core domain entity definitions (workspaces, accounts, categories)
+* Repository pattern for data access
+* Account CRUD operations via Tauri commands
+* Category CRUD with seed/default data
+* Validation layer for domain entities
+* Local persistence architecture documentation
+* Foreign key behavior documented and tested
 
 ## Out of Scope
 
+* Transaction engine (Sprint 4)
+* Dashboard or summary UI
 * Plaid
 * Licensing
 * Stripe
 * Receipts
 * Invoicing
 * AP/AR
-* Advanced reports
+* Reports
 
 ## Exit Criteria
 
-Sprint 3 is complete when a user can:
+Sprint 3 is complete when:
 
-* Create a workspace.
-* Create accounts.
-* Add transactions.
-* Categorize transactions.
-* Search transactions.
-* View account balances.
-* Use Ledger for basic manual finance tracking.
+* Workspaces, accounts, and categories can be created, read, updated, and deleted via Tauri commands.
+* Repository pattern provides a clean boundary between domain logic and storage.
+* Domain entity validation prevents invalid data from reaching the database.
+* Foreign key constraints are enforced and tested.
+* Seed/default categories are available on first launch.
 
 ---
 
-# Sprint 4: CSV Import and Data Ownership
+# Sprint 4: Transaction Engine
 
 ## Objective
 
-Make Ledger practical for users who do not use bank sync.
+Build the transaction engine with search, filtering, and import foundation.
 
 ## Scope
 
-* CSV import flow
-* Column mapping
-* Import preview
-* Duplicate detection
-* Import sessions
-* Import error handling
-* CSV export
-* Manual backup
-* Restore documentation
-* Data ownership documentation
+* Transaction CRUD operations via Tauri commands
+* Transaction search capabilities
+* Transaction filtering (date, category, amount, account)
+* Import foundation (data layer for future CSV import UI)
+* Data integrity validation and constraints
+* Performance validation with representative datasets
 
 ## Out of Scope
 
-* Plaid
+* CSV import UI (column mapping, preview, file picker)
 * Auto-categorization rules
+* Dashboard or report UI
 * Cloud backup
 * Cloud sync
 
@@ -341,12 +331,11 @@ Make Ledger practical for users who do not use bank sync.
 
 Sprint 4 is complete when:
 
-* Users can import bank CSV files.
-* Users can map columns before importing.
-* Users can preview imported transactions.
-* Duplicate transactions are detected.
-* Users can export their data.
-* Users understand where their data lives and how to back it up.
+* Transactions can be created, read, updated, and deleted via Tauri commands.
+* Transactions can be searched and filtered by date, category, amount, and account.
+* Import data path exists for programmatic transaction creation.
+* Data integrity constraints are enforced.
+* Performance is validated against representative dataset sizes.
 
 ---
 
