@@ -103,9 +103,26 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-local-data-platform).
 
+### Architecture Phase 1: Local Data Platform Documentation (Complete)
+
+**Objective:** Create implementation-ready architecture documentation for Sprints 2–4.
+
+**Architecture Documents:** [docs/architecture/](docs/architecture/)
+
+- [x] Database architecture (`docs/architecture/database.md`)
+- [x] Repository architecture (`docs/architecture/repositories.md`)
+- [x] Tauri command architecture (`docs/architecture/tauri-commands.md`)
+- [x] State management architecture (`docs/architecture/state-management.md`)
+- [x] Folder structure architecture (`docs/architecture/folder-structure.md`)
+- [x] Error handling architecture (`docs/architecture/error-handling.md`)
+- [x] Backup and restore architecture (`docs/architecture/backup-and-restore.md`)
+- [x] Updated ARCHITECTURE.md, PROJECT.md, TASKS.md, CHANGELOG.md
+
 ### Sprint 2: Database Foundation (Planned)
 
 **Objective:** Set up SQLite, migrations, and the database service abstraction.
+
+**Architecture Guide:** [docs/architecture/database.md](docs/architecture/database.md)
 
 - [ ] SQLite integration in the Rust backend
 - [ ] Database initialization on first launch

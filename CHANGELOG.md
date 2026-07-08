@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Architecture Phase 1: Local Data Platform** (`docs/architecture/`)
+  - Database architecture: SQLite role, connection lifecycle, WAL mode, migrations, data types, testing
+  - Repository architecture: repository pattern, domain types, validation, transaction boundaries
+  - Tauri command architecture: IPC conventions, naming, request/response shape, TypeScript wrappers
+  - State management: React state philosophy, data loading patterns, Context usage guidelines
+  - Folder structure: backend and frontend organization, naming conventions, testing layout
+  - Error handling: error categories, propagation, user-facing messages, logging, privacy
+  - Backup and restore: backup philosophy, WAL checkpoint safety, restore workflow, migration compatibility
+- ADR 0008: Monetary amounts as integer minor units (`docs/adr/0008-monetary-amounts-as-integer-minor-units.md`)
+- Updated ARCHITECTURE.md with Architecture Phase 1 section and document links
+- Updated PROJECT.md documentation map with architecture documents
+
 ### Changed
 - **Finalized milestone and sprint structure** (`docs/milestones.md` v2.1, `TASKS.md`, `docs/business/ROADMAP.md`)
   - Milestone 2: Sprints 2, 3, 4 (Local Data Platform)

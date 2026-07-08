@@ -107,6 +107,13 @@ The current Ledger application (v3) is reference material only. It informs produ
 ### Architecture
 - [Architecture Overview](ARCHITECTURE.md)
 - [Architecture Decision Records](docs/adr/)
+- [Database Architecture](docs/architecture/database.md)
+- [Repository Architecture](docs/architecture/repositories.md)
+- [Tauri Command Architecture](docs/architecture/tauri-commands.md)
+- [State Management](docs/architecture/state-management.md)
+- [Folder Structure](docs/architecture/folder-structure.md)
+- [Error Handling](docs/architecture/error-handling.md)
+- [Backup and Restore](docs/architecture/backup-and-restore.md)
 
 ### Specifications
 - [App Scope](docs/specifications/app-scope.md)

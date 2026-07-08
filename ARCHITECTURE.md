@@ -1,7 +1,7 @@
 # Ledger Desktop — Architecture Overview
 
-**Version:** 1.0
-**Status:** Sprint 1 — Project Foundation
+**Version:** 1.1
+**Status:** Sprint 1 Complete — Architecture Phase 1 Documented
 
 ---
 
@@ -189,6 +189,24 @@ See [Release and Distribution Specification](docs/specifications/release-and-dis
 
 ---
 
+## Architecture Phase 1: Local Data Platform
+
+Detailed architecture documentation for the local data platform (Milestone 2, Sprints 2–4) is in `docs/architecture/`:
+
+| Document | Scope |
+|----------|-------|
+| [Database Architecture](docs/architecture/database.md) | SQLite role, connection lifecycle, migrations, WAL mode, data types, testing |
+| [Repository Architecture](docs/architecture/repositories.md) | Repository pattern, domain types, validation, transaction boundaries |
+| [Tauri Command Architecture](docs/architecture/tauri-commands.md) | IPC conventions, naming, request/response shape, TypeScript wrappers |
+| [State Management](docs/architecture/state-management.md) | React state philosophy, data loading patterns, Context usage |
+| [Folder Structure](docs/architecture/folder-structure.md) | Backend and frontend organization, naming conventions, testing layout |
+| [Error Handling](docs/architecture/error-handling.md) | Error categories, propagation, user-facing messages, logging, privacy |
+| [Backup and Restore](docs/architecture/backup-and-restore.md) | Backup philosophy, WAL safety, restore workflow, migration compatibility |
+
+These documents are implementation-ready and guide Sprint 2 through Sprint 4 development.
+
+---
+
 ## Architecture Decision Records
 
 All significant architecture decisions are recorded as ADRs in `docs/adr/`.
@@ -202,6 +220,7 @@ All significant architecture decisions are recorded as ADRs in `docs/adr/`.
 | [0005](docs/adr/0005-plaid-requires-cloud-relay.md) | Plaid requires a cloud relay service |
 | [0006](docs/adr/0006-one-time-purchase-with-optional-subscriptions.md) | One-time purchase with optional subscriptions |
 | [0007](docs/adr/0007-existing-ledger-as-reference-only.md) | Existing Ledger app as reference only |
+| [0008](docs/adr/0008-monetary-amounts-as-integer-minor-units.md) | Monetary amounts as integer minor units |
 
 ---
 
