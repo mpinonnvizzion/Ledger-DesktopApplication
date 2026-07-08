@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - Error handling: error categories, propagation, user-facing messages, logging, privacy
   - Backup and restore: backup philosophy, WAL checkpoint safety, restore workflow, migration compatibility
 - ADR 0008: Monetary amounts as integer minor units (`docs/adr/0008-monetary-amounts-as-integer-minor-units.md`)
+- Sprint 2 implementation plan (`docs/sprint-notes/sprint-2.md`)
 - Updated ARCHITECTURE.md with Architecture Phase 1 section and document links
 - Updated PROJECT.md documentation map with architecture documents
 

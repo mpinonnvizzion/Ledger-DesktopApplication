@@ -120,20 +120,47 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ### Sprint 2: Database Foundation (Planned)
 
-**Objective:** Set up SQLite, migrations, and the database service abstraction.
+**Objective:** Implement the local database foundation. After Sprint 2, the application creates and manages a local SQLite database with WAL mode, foreign key enforcement, and a forward-only migration system.
 
+**Implementation Plan:** [docs/sprint-notes/sprint-2.md](docs/sprint-notes/sprint-2.md)
 **Architecture Guide:** [docs/architecture/database.md](docs/architecture/database.md)
 
-- [ ] SQLite integration in the Rust backend
-- [ ] Database initialization on first launch
-- [ ] Migration system for schema evolution
-- [ ] Database service abstraction layer
-- [ ] Database file location documentation
-- [ ] Backup and export foundation
-- [ ] Version management for schema tracking
-- [ ] Verify data persists after app restart
+#### Phase A: SQLite Dependency and Project Organization
+- [ ] Add `rusqlite` crate with `bundled` feature
+- [ ] Create `src-tauri/src/db/` module (connection.rs, migration.rs)
+- [ ] Create `src-tauri/src/error.rs` (DomainError, CommandError)
+- [ ] Create `src-tauri/src/state.rs` (AppState)
+- [ ] Create `src-tauri/migrations/` directory
+- [ ] Update `lib.rs` module declarations
+
+#### Phase B: Database Service and Connection Management
+- [ ] Implement connection open with directory creation
+- [ ] Configure WAL mode, foreign keys, busy timeout
+- [ ] Implement WAL checkpoint utility (backup foundation)
+- [ ] Implement error types and conversions
+- [ ] Register AppState as Tauri managed state
+- [ ] Wire database initialization into Tauri setup hook
+
+#### Phase C: Migration Framework
+- [ ] Implement forward-only migration runner
+- [ ] Implement migration tracking table (`_migrations`)
+- [ ] Implement version-ahead detection
+- [ ] Embed migrations via `include_str!()`
+- [ ] Create `0001_initial_schema.sql` (app_settings table)
+- [ ] Wire migrations into startup sequence
+
+#### Phase D: Health Validation and Testing
+- [ ] Implement `db_info` Tauri command
+- [ ] Move `greet` to `commands/system.rs`
+- [ ] Unit tests for migration runner (5 tests)
+- [ ] Unit tests for connection lifecycle (6 tests)
+- [ ] Integration tests for persistence and state (3 tests)
+
+#### Phase E: Documentation and Finalization
 - [ ] Update CHANGELOG.md
-- [ ] Write Sprint 2 notes
+- [ ] Update ARCHITECTURE.md status
+- [ ] Finalize sprint-2 notes
+- [ ] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check)
 
 ---
 
