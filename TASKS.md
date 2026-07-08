@@ -166,17 +166,57 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ### Sprint 3: Core Domain Entities (Planned)
 
-**Objective:** Define and implement the core domain entities behind a repository abstraction.
+**Objective:** Define and implement the core domain entities behind a repository abstraction. After Sprint 3, workspaces, accounts, and categories can be created, read, updated, and deleted through Tauri commands backed by repositories over SQLite.
 
-- [ ] Core domain entity definitions (workspaces, accounts, categories)
-- [ ] Repository pattern for data access
-- [ ] Account CRUD operations via Tauri commands
-- [ ] Category CRUD with seed/default data
-- [ ] Validation layer for domain entities
-- [ ] Local persistence architecture documentation
-- [ ] Foreign key behavior documented and tested
+**Implementation Plan:** [docs/sprint-notes/sprint-3.md](docs/sprint-notes/sprint-3.md)
+
+#### Phase A: Domain Model Types
+- [ ] Create `models/` module (mod.rs, workspace.rs, account.rs, category.rs)
+- [ ] Define workspace types (Workspace, CreateWorkspaceInput, UpdateWorkspaceInput, WorkspaceType)
+- [ ] Define account types (Account, CreateAccountInput, UpdateAccountInput, AccountType)
+- [ ] Define category types (Category, CreateCategoryInput, UpdateCategoryInput, CategoryType)
+
+#### Phase B: Database Migrations
+- [ ] Create `0002_workspaces.sql` migration
+- [ ] Create `0003_accounts.sql` migration with FK to workspaces
+- [ ] Create `0004_categories.sql` migration with FK to workspaces and self-referential FK
+- [ ] Register migrations 0002–0004 in migration runner
+
+#### Phase C: Extended Error Types
+- [ ] Add `NotFound`, `Validation(String)`, `Conflict(String)` to `DomainError`
+- [ ] Update `From<rusqlite::Error>` to map `QueryReturnedNoRows` to `NotFound`
+- [ ] Update `From<DomainError> for CommandError` for new variants
+
+#### Phase D: Repository Layer
+- [ ] Create `repositories/` module (mod.rs, workspace.rs, account.rs, category.rs)
+- [ ] Implement `WorkspaceRepository` (CRUD + validation)
+- [ ] Implement `AccountRepository` (CRUD + list_by_workspace + validation)
+- [ ] Implement `CategoryRepository` (CRUD + list_by_workspace + seed_defaults + validation)
+
+#### Phase E: Tauri Commands and Frontend Types
+- [ ] Create workspace Tauri commands (create, get, list, update, delete)
+- [ ] Create account Tauri commands (create, get, list_by_workspace, update, delete)
+- [ ] Create category Tauri commands (create, get, list_by_workspace, update, delete, seed_defaults)
+- [ ] Register all commands in `lib.rs`
+- [ ] Create TypeScript API wrappers (workspaces.ts, accounts.ts, categories.ts)
+- [ ] Create TypeScript domain types (src/types/domain.ts)
+- [ ] Create frontend error helper (src/lib/errors.ts)
+- [ ] Create amount formatting utility (src/lib/format.ts)
+
+#### Phase F: Testing
+- [ ] Workspace repository tests (10 tests)
+- [ ] Account repository tests (11 tests)
+- [ ] Category repository tests (13 tests)
+- [ ] Foreign key and cascade tests (4 tests)
+- [ ] Migration tests for tables 0002–0004 (3 tests)
+- [ ] Frontend formatting tests (7 tests)
+
+#### Phase G: Documentation and Finalization
 - [ ] Update CHANGELOG.md
-- [ ] Write Sprint 3 notes
+- [ ] Update ARCHITECTURE.md (v1.3, "Sprint 3 Complete")
+- [ ] Update README.md (repository structure)
+- [ ] Finalize sprint-3 notes
+- [ ] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check)
 
 ---
 

@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Sprint 3 implementation plan (`docs/sprint-notes/sprint-3.md`)
+- Updated TASKS.md with Sprint 3 phased task breakdown
+
 ## Sprint 2 — 2026-07-07
 
 ### Added
