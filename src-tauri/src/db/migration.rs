@@ -9,11 +9,28 @@ struct Migration {
 }
 
 fn embedded_migrations() -> Vec<Migration> {
-    vec![Migration {
-        version: 1,
-        name: "initial_schema",
-        sql: include_str!("../../migrations/0001_initial_schema.sql"),
-    }]
+    vec![
+        Migration {
+            version: 1,
+            name: "initial_schema",
+            sql: include_str!("../../migrations/0001_initial_schema.sql"),
+        },
+        Migration {
+            version: 2,
+            name: "workspaces",
+            sql: include_str!("../../migrations/0002_workspaces.sql"),
+        },
+        Migration {
+            version: 3,
+            name: "accounts",
+            sql: include_str!("../../migrations/0003_accounts.sql"),
+        },
+        Migration {
+            version: 4,
+            name: "categories",
+            sql: include_str!("../../migrations/0004_categories.sql"),
+        },
+    ]
 }
 
 pub fn run_migrations(conn: &Connection) -> Result<(), DomainError> {
@@ -144,12 +161,16 @@ mod tests {
     fn run_migrations_is_idempotent() {
         let conn = open_test_db();
         run_migrations(&conn).unwrap();
-        run_migrations(&conn).unwrap();
-
-        let count: i64 = conn
+        let count_after_first: i64 = conn
             .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
             .unwrap();
-        assert_eq!(count, 1);
+
+        run_migrations(&conn).unwrap();
+        let count_after_second: i64 = conn
+            .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
+            .unwrap();
+
+        assert_eq!(count_after_first, count_after_second);
     }
 
     #[test]

@@ -6,9 +6,52 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 3 — 2026-07-08
+
 ### Added
+- **Domain model types** (`src-tauri/src/models/`)
+  - `Workspace` entity with `WorkspaceType` enum (personal, business)
+  - `Account` entity with `AccountType` enum (checking, savings, credit_card, cash, investment, loan, other)
+  - `Category` entity with `CategoryType` enum (income, expense)
+  - Input structs for create and update operations per entity
+- **Database migrations** (`src-tauri/migrations/`)
+  - `0002_workspaces.sql`: workspaces table with CHECK constraint on workspace_type
+  - `0003_accounts.sql`: accounts table with FK to workspaces, balance as INTEGER (cents per ADR 0008), index on workspace_id
+  - `0004_categories.sql`: categories table with FK to workspaces, self-referential FK for parent_id, UNIQUE constraint on (workspace_id, name, category_type), indexes on workspace_id and parent_id
+- **Repository layer** (`src-tauri/src/repositories/`)
+  - `WorkspaceRepository`: CRUD with name validation (non-empty, ≤100 chars), cascade delete to accounts and categories
+  - `AccountRepository`: CRUD with workspace existence validation, list by workspace, balance defaults to 0
+  - `CategoryRepository`: CRUD with workspace and parent validation, duplicate detection, seed defaults (4 income + 13 expense system categories), system category deletion protection
+- **Extended error handling** (`src-tauri/src/error.rs`)
+  - Added `NotFound`, `Validation(String)`, `Conflict(String)` variants to `DomainError`
+  - `rusqlite::Error::QueryReturnedNoRows` maps to `DomainError::NotFound`
+  - UNIQUE constraint violations map to `DomainError::Conflict`
+  - `CommandError` conversion for new error variants with stable error codes
+- **Tauri commands** (`src-tauri/src/commands/`)
+  - 5 workspace commands: create, get, list, update, delete
+  - 5 account commands: create, get, list_by_workspace, update, delete
+  - 6 category commands: create, get, list_by_workspace, update, delete, seed_default_categories
+- **TypeScript API wrappers** (`src/api/`)
+  - `workspaces.ts`, `accounts.ts`, `categories.ts` with typed invoke functions
+- **TypeScript domain types** (`src/types/domain.ts`)
+  - Interfaces mirroring Rust entity and input structs
+  - String union types for WorkspaceType, AccountType, CategoryType
+- **Frontend utilities** (`src/lib/`)
+  - `errors.ts`: CommandError interface, error code constants, parse helper
+  - `format.ts`: `formatAmount` (cents → display) and `parseAmount` (display → cents)
+- **35 new Rust tests** (46 total unit + 3 integration)
+  - 10 workspace repository tests (CRUD, validation, cascade)
+  - 11 account repository tests (CRUD, validation, FK checks)
+  - 14 category repository tests (CRUD, validation, conflict, seed, parent hierarchy)
+- **8 frontend tests** (9 total)
+  - formatAmount and parseAmount for zero, typical, negative, large, and single-digit-cent amounts
 - Sprint 3 implementation plan (`docs/sprint-notes/sprint-3.md`)
-- Updated TASKS.md with Sprint 3 phased task breakdown
+
+### Changed
+- Updated `DomainError` from 3 variants (Database, Io, Migration) to 6 variants (+ NotFound, Validation, Conflict)
+- Updated `From<rusqlite::Error>` to distinguish NotFound and Conflict from generic Database errors
+- Updated migration idempotency test to check count equality rather than hardcoded value
+- Updated integration tests for 4 migrations (was 1)
 
 ## Sprint 2 — 2026-07-07
 

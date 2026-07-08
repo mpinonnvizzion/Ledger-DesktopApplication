@@ -164,59 +164,59 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ---
 
-### Sprint 3: Core Domain Entities (Planned)
+### Sprint 3: Core Domain Entities (Complete)
 
 **Objective:** Define and implement the core domain entities behind a repository abstraction. After Sprint 3, workspaces, accounts, and categories can be created, read, updated, and deleted through Tauri commands backed by repositories over SQLite.
 
 **Implementation Plan:** [docs/sprint-notes/sprint-3.md](docs/sprint-notes/sprint-3.md)
 
 #### Phase A: Domain Model Types
-- [ ] Create `models/` module (mod.rs, workspace.rs, account.rs, category.rs)
-- [ ] Define workspace types (Workspace, CreateWorkspaceInput, UpdateWorkspaceInput, WorkspaceType)
-- [ ] Define account types (Account, CreateAccountInput, UpdateAccountInput, AccountType)
-- [ ] Define category types (Category, CreateCategoryInput, UpdateCategoryInput, CategoryType)
+- [x] Create `models/` module (mod.rs, workspace.rs, account.rs, category.rs)
+- [x] Define workspace types (Workspace, CreateWorkspaceInput, UpdateWorkspaceInput, WorkspaceType)
+- [x] Define account types (Account, CreateAccountInput, UpdateAccountInput, AccountType)
+- [x] Define category types (Category, CreateCategoryInput, UpdateCategoryInput, CategoryType)
 
 #### Phase B: Database Migrations
-- [ ] Create `0002_workspaces.sql` migration
-- [ ] Create `0003_accounts.sql` migration with FK to workspaces
-- [ ] Create `0004_categories.sql` migration with FK to workspaces and self-referential FK
-- [ ] Register migrations 0002–0004 in migration runner
+- [x] Create `0002_workspaces.sql` migration
+- [x] Create `0003_accounts.sql` migration with FK to workspaces
+- [x] Create `0004_categories.sql` migration with FK to workspaces and self-referential FK
+- [x] Register migrations 0002–0004 in migration runner
 
 #### Phase C: Extended Error Types
-- [ ] Add `NotFound`, `Validation(String)`, `Conflict(String)` to `DomainError`
-- [ ] Update `From<rusqlite::Error>` to map `QueryReturnedNoRows` to `NotFound`
-- [ ] Update `From<DomainError> for CommandError` for new variants
+- [x] Add `NotFound`, `Validation(String)`, `Conflict(String)` to `DomainError`
+- [x] Update `From<rusqlite::Error>` to map `QueryReturnedNoRows` to `NotFound`
+- [x] Update `From<DomainError> for CommandError` for new variants
 
 #### Phase D: Repository Layer
-- [ ] Create `repositories/` module (mod.rs, workspace.rs, account.rs, category.rs)
-- [ ] Implement `WorkspaceRepository` (CRUD + validation)
-- [ ] Implement `AccountRepository` (CRUD + list_by_workspace + validation)
-- [ ] Implement `CategoryRepository` (CRUD + list_by_workspace + seed_defaults + validation)
+- [x] Create `repositories/` module (mod.rs, workspace.rs, account.rs, category.rs)
+- [x] Implement `WorkspaceRepository` (CRUD + validation)
+- [x] Implement `AccountRepository` (CRUD + list_by_workspace + validation)
+- [x] Implement `CategoryRepository` (CRUD + list_by_workspace + seed_defaults + validation)
 
 #### Phase E: Tauri Commands and Frontend Types
-- [ ] Create workspace Tauri commands (create, get, list, update, delete)
-- [ ] Create account Tauri commands (create, get, list_by_workspace, update, delete)
-- [ ] Create category Tauri commands (create, get, list_by_workspace, update, delete, seed_defaults)
-- [ ] Register all commands in `lib.rs`
-- [ ] Create TypeScript API wrappers (workspaces.ts, accounts.ts, categories.ts)
-- [ ] Create TypeScript domain types (src/types/domain.ts)
-- [ ] Create frontend error helper (src/lib/errors.ts)
-- [ ] Create amount formatting utility (src/lib/format.ts)
+- [x] Create workspace Tauri commands (create, get, list, update, delete)
+- [x] Create account Tauri commands (create, get, list_by_workspace, update, delete)
+- [x] Create category Tauri commands (create, get, list_by_workspace, update, delete, seed_defaults)
+- [x] Register all commands in `lib.rs`
+- [x] Create TypeScript API wrappers (workspaces.ts, accounts.ts, categories.ts)
+- [x] Create TypeScript domain types (src/types/domain.ts)
+- [x] Create frontend error helper (src/lib/errors.ts)
+- [x] Create amount formatting utility (src/lib/format.ts)
 
 #### Phase F: Testing
-- [ ] Workspace repository tests (10 tests)
-- [ ] Account repository tests (11 tests)
-- [ ] Category repository tests (13 tests)
-- [ ] Foreign key and cascade tests (4 tests)
-- [ ] Migration tests for tables 0002–0004 (3 tests)
-- [ ] Frontend formatting tests (7 tests)
+- [x] Workspace repository tests (10 tests)
+- [x] Account repository tests (11 tests)
+- [x] Category repository tests (14 tests)
+- [x] Foreign key and cascade tests (included in repository tests)
+- [x] Migration tests updated for 4 migrations
+- [x] Frontend formatting tests (8 tests)
 
 #### Phase G: Documentation and Finalization
-- [ ] Update CHANGELOG.md
-- [ ] Update ARCHITECTURE.md (v1.3, "Sprint 3 Complete")
-- [ ] Update README.md (repository structure)
-- [ ] Finalize sprint-3 notes
-- [ ] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check)
+- [x] Update CHANGELOG.md
+- [x] Update ARCHITECTURE.md (v1.3, "Sprint 3 Complete")
+- [x] Update README.md (repository structure)
+- [x] Finalize sprint-3 notes
+- [x] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check)
 
 ---
 

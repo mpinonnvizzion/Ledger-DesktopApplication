@@ -41,7 +41,7 @@ fn migrations_table_has_expected_rows() {
     let count: i64 = conn
         .query_row("SELECT COUNT(*) FROM _migrations", [], |row| row.get(0))
         .unwrap();
-    assert_eq!(count, 1);
+    assert_eq!(count, 4);
 
     let version: i64 = conn
         .query_row("SELECT version FROM _migrations WHERE version = 1", [], |row| {
@@ -68,5 +68,5 @@ fn app_state_wraps_connection() {
 
     let locked = state.lock().unwrap();
     let version = get_schema_version(&locked).unwrap();
-    assert_eq!(version, 1);
+    assert_eq!(version, 4);
 }

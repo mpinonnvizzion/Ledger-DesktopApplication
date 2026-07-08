@@ -1,6 +1,8 @@
 mod commands;
 pub mod db;
 pub mod error;
+pub mod models;
+pub mod repositories;
 mod state;
 
 use state::AppState;
@@ -29,6 +31,22 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::system::greet,
             commands::system::db_info,
+            commands::workspace::create_workspace,
+            commands::workspace::get_workspace,
+            commands::workspace::list_workspaces,
+            commands::workspace::update_workspace,
+            commands::workspace::delete_workspace,
+            commands::account::create_account,
+            commands::account::get_account,
+            commands::account::list_accounts_by_workspace,
+            commands::account::update_account,
+            commands::account::delete_account,
+            commands::category::create_category,
+            commands::category::get_category,
+            commands::category::list_categories_by_workspace,
+            commands::category::update_category,
+            commands::category::delete_category,
+            commands::category::seed_default_categories,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
