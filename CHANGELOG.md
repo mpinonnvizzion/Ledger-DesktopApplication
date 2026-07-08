@@ -6,7 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 2 — 2026-07-07
+
 ### Added
+- **SQLite database foundation** (`src-tauri/src/db/`)
+  - `rusqlite` with `bundled` feature for consistent cross-platform SQLite
+  - Database auto-creation in Tauri app data directory (`~/Library/Application Support/io.nvizzion.ledger/ledger.db`)
+  - Connection lifecycle: open, configure pragmas, share via `Mutex<Connection>`
+  - WAL mode, foreign key enforcement, 5000ms busy timeout
+  - Forward-only embedded migration system with `_migrations` tracking table
+  - Schema version-ahead detection (prevents older app from corrupting newer database)
+  - WAL checkpoint utility for backup foundation
+  - `0001_initial_schema.sql`: creates `app_settings` key-value table
+- **Error handling foundation** (`src-tauri/src/error.rs`)
+  - `DomainError` enum (Database, Io, Migration variants)
+  - `CommandError` struct with code/message (strips internal details)
+  - Error conversions from `rusqlite::Error` and `std::io::Error`
+- **Application state** (`src-tauri/src/state.rs`)
+  - `AppState` with `Mutex<Connection>` registered as Tauri managed state
+- **System commands** (`src-tauri/src/commands/system.rs`)
+  - `db_info` command returns database path, schema version, WAL/FK status
+  - `greet` command moved from `commands/mod.rs` to `commands/system.rs`
+- **14 Rust tests** (11 unit + 3 integration)
+  - Connection: directory creation, WAL mode, foreign keys, busy timeout, WAL checkpoint
+  - Migrations: table creation, idempotency, invalid SQL, version-ahead detection, transaction rollback
+  - Integration: data persistence across close/reopen, migration tracking, AppState wrapping
+
+### Added (pre-Sprint 2)
 - **Architecture Phase 1: Local Data Platform** (`docs/architecture/`)
   - Database architecture: SQLite role, connection lifecycle, WAL mode, migrations, data types, testing
   - Repository architecture: repository pattern, domain types, validation, transaction boundaries

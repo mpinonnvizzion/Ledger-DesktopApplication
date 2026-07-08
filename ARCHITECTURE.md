@@ -1,7 +1,7 @@
 # Ledger Desktop — Architecture Overview
 
-**Version:** 1.1
-**Status:** Sprint 1 Complete — Architecture Phase 1 Documented
+**Version:** 1.2
+**Status:** Sprint 2 Complete — Database Foundation
 
 ---
 

@@ -44,9 +44,9 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 ## Project Status
 
-**Current Phase:** Sprint 1 — Project Foundation (Complete)
+**Current Phase:** Sprint 2 — Database Foundation (Complete)
 
-The application shell is running: Tauri 2 desktop window with React frontend, sidebar navigation to four placeholder pages, and a working Rust command boundary.
+The local data platform is in place: SQLite database with WAL mode, foreign key enforcement, forward-only migration system, schema version tracking, and a database service abstraction shared via Tauri managed state. The application shell from Sprint 1 (Tauri 2 desktop window, React frontend, sidebar navigation, Rust command boundary) remains fully functional.
 
 ## Getting Started
 
@@ -82,7 +82,10 @@ src/                  React frontend (TypeScript)
   pages/              Page-level components
 src-tauri/            Rust backend (Tauri 2)
   src/commands/       Tauri command modules
+  src/db/             Database service (connection, migrations)
+  migrations/         Embedded SQL migration files
 docs/
+  architecture/       Implementation architecture (database, repos, commands, etc.)
   adr/                Architecture Decision Records
   business/           Business strategy and planning documents
   product/            Product requirements
