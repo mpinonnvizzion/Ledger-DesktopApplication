@@ -33,8 +33,8 @@ These principles are non-negotiable across all milestones. See [ADR 0006](adr/00
 | Milestone | Name | Sprints | Status |
 |-----------|------|---------|--------|
 | 1 | Application Foundation | 0, 1 | Complete |
-| 2 | Local Data Platform | 2, 3, 4 | Planned |
-| 3 | Core Finance Features | 5, 6, 7 | Planned |
+| 2 | Local Data Platform | 2, 3, 4 | Complete |
+| 3 | Core Finance Features | 5, 6, 7 | In Progress |
 | 4 | Commercial Readiness | 8, 9, 11, 12 | Planned |
 | 5 | Optional Connected Services | 10 | Planned |
 
@@ -94,7 +94,7 @@ Establish the documentation foundation, architecture decisions, development proc
 
 ## Milestone 2: Local Data Platform
 
-**Status:** Planned
+**Status:** Complete
 **Sprints:** 2, 3, 4
 **Roadmap Layer:** Local Finance Foundation
 
@@ -171,9 +171,9 @@ Build the complete local persistence layer that every finance feature depends on
 
 ## Milestone 3: Core Finance Features
 
-**Status:** Planned
+**Status:** In Progress
 **Sprints:** 5, 6, 7
-**Roadmap Layer:** Planning and Reporting → Local Security → Business Finance
+**Roadmap Layer:** Personal Finance UI → Budgets and Reports → Security and Business Finance
 
 ### Objective
 
@@ -181,7 +181,16 @@ Transform the completed data platform into a fully usable offline personal finan
 
 ### Scope
 
-**Sprint 5: Budgets, Goals, and Reports**
+**Sprint 5: Personal Finance UI**
+- Workspace initialization and context management
+- Account UI (list, create, edit, archive, delete with cascade warnings)
+- Category management UI (list, create, edit, delete with system protection)
+- Transaction UI (table, create, edit, delete, search, filter, pagination)
+- Dashboard summary (total balance, account count, monthly income/expenses, recent transactions)
+- Empty states, loading states, error states, confirmation dialogs
+- Desktop keyboard shortcuts and responsive layout
+
+**Sprint 6: Budgets, Goals, and Reports**
 - Monthly budget creation and editing
 - Budget progress tracking
 - Savings goals
@@ -190,27 +199,24 @@ Transform the completed data platform into a fully usable offline personal finan
 - Month comparison view
 - Basic profit/loss for business workspaces
 - Dashboard report widgets
+- CSV import UI (column mapping, preview, file picker)
+- CSV export
 
-**Sprint 6: Local Security and Onboarding**
+**Sprint 7: Security, Onboarding, and Business Finance**
 - First-launch onboarding flow
 - Local password/PIN setup
 - App unlock screen
 - Auto-lock setting
 - Local database security design
 - Keychain integration research
-- Backup reminder
-- Privacy explanation screen
+- Backup reminder and privacy explanation
 - Settings foundation
-
-**Sprint 7: Lightweight Business Finance**
-- Client management
-- Vendor management
+- Client and vendor management
 - Invoice creation with line items
 - Invoice status tracking
 - Invoice PDF/export
 - Receipt attachment on transactions
-- Accounts payable tracking
-- Accounts receivable tracking
+- Accounts payable and receivable tracking
 - Business workspace reports
 
 ### Out of Scope
@@ -227,10 +233,13 @@ Transform the completed data platform into a fully usable offline personal finan
 
 ### Exit Criteria
 
+- [ ] A user can manage workspaces, accounts, categories, and transactions through the desktop UI
+- [ ] Account balances update after transaction changes
+- [ ] Transactions can be searched, filtered, and paginated
+- [ ] Dashboard displays summary data (balance, accounts, monthly totals, recent transactions)
 - [ ] A user can create budgets and track progress
 - [ ] A user can create savings goals
 - [ ] A user can view spending by category and income vs. expense reports
-- [ ] Dashboard displays summary widgets and report data
 - [ ] A user can protect the app with a local password/PIN
 - [ ] First-launch onboarding guides new users
 - [ ] Business users can manage clients, vendors, and invoices
@@ -241,13 +250,15 @@ Transform the completed data platform into a fully usable offline personal finan
 
 ### Dependent Sprints
 
-- Sprint 5: Budgets, Goals, and Reports
-- Sprint 6: Local Security and Onboarding
-- Sprint 7: Lightweight Business Finance
+- Sprint 5: Personal Finance UI
+- Sprint 6: Budgets, Goals, and Reports
+- Sprint 7: Security, Onboarding, and Business Finance
 
 ### Notes
 
-Sprint 7 items (invoicing, clients, vendors) are listed as "may be included in v1.0 depending on complexity" in the [App Scope Specification](specifications/app-scope.md) and the [Roadmap](business/ROADMAP.md). If Sprint 7 scope proves too large, these features may be deferred to a post-launch version without blocking Milestone 4. This decision should be documented as an ADR if it occurs.
+Sprint 5 was originally scoped as "Budgets, Goals, and Reports" but was repurposed to "Personal Finance UI" because the data platform requires a working UI before financial planning features can be layered on. Budgets, goals, and reports moved to Sprint 6. Security, onboarding, and business finance are combined in Sprint 7.
+
+Sprint 7 items (invoicing, clients, vendors, onboarding, security) are a large scope. If Sprint 7 proves too large, it may be split or partially deferred to a post-launch version without blocking Milestone 4. This decision should be documented as an ADR if it occurs.
 
 ---
 
@@ -420,9 +431,9 @@ Future connected services (cloud backup, multi-device sync) are version 2.0 cand
 | 2 | Database Foundation | 2: Local Data Platform |
 | 3 | Core Domain Entities | 2: Local Data Platform |
 | 4 | Transaction Engine | 2: Local Data Platform |
-| 5 | Budgets, Goals, and Reports | 3: Core Finance Features |
-| 6 | Local Security and Onboarding | 3: Core Finance Features |
-| 7 | Lightweight Business Finance | 3: Core Finance Features |
+| 5 | Personal Finance UI | 3: Core Finance Features |
+| 6 | Budgets, Goals, and Reports | 3: Core Finance Features |
+| 7 | Security, Onboarding, and Business Finance | 3: Core Finance Features |
 | 8 | Commercial Readiness | 4: Commercial Readiness |
 | 9 | Installer, Updates, and Distribution | 4: Commercial Readiness |
 | 10 | Plaid Relay and Bank Sync | 5: Optional Connected Services |

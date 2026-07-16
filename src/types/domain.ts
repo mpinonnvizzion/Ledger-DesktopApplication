@@ -80,3 +80,10 @@ export interface UpdateCategoryInput {
   name?: string;
   parent_id?: number;
 }
+
+export interface TransactionSummary {
+  income_minor: number;
+  expense_minor: number;
+  net_minor: number;
+  transaction_count: number;
+}

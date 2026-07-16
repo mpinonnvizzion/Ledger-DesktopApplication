@@ -99,7 +99,7 @@ All Phase -1 documents are complete and serve as the source of truth for product
 
 ---
 
-## Milestone 2: Local Data Platform (Planned)
+## Milestone 2: Local Data Platform (Complete)
 
 Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-local-data-platform).
 
@@ -220,7 +220,7 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ---
 
-### Sprint 4: Transaction Engine (Planned)
+### Sprint 4: Transaction Engine (Complete)
 
 **Objective:** Build the transaction engine and complete Milestone 2. After Sprint 4, income and expense transactions can be created, read, updated, deleted, searched, and filtered through Tauri commands. A programmatic batch-create path exists for future import workflows. Performance is validated against representative dataset sizes.
 
@@ -272,11 +272,66 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ---
 
-## Milestone 3: Core Finance Features (Planned)
+## Milestone 3: Core Finance Features (In Progress)
 
 Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-core-finance-features).
 
-### Sprint 5: Budgets, Goals, and Reports (Planned)
+### Sprint 5: Personal Finance UI (Planned)
+
+**Objective:** Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI. No new finance engine functionality unless a genuine capability gap is discovered (see Backend Change Rule in sprint-5.md).
+
+**Implementation Plan:** [docs/sprint-notes/sprint-5.md](docs/sprint-notes/sprint-5.md)
+
+#### Phase A: Foundation — Context, Primitives, and Layout
+- [ ] Create WorkspaceContext (first-launch workspace creation, default category seeding)
+- [ ] Build UI primitives: Button, Input, Select, Dialog, ConfirmDialog, Table, EmptyState, LoadingSpinner, ErrorMessage, AmountInput, DateInput
+- [ ] Add Categories route and sidebar navigation entry
+- [ ] Refine sidebar icons and layout
+
+#### Phase B: Accounts UI
+- [ ] Accounts list page with balances, loading/empty/error states
+- [ ] Create account dialog with validation
+- [ ] Edit account dialog (name, institution)
+- [ ] Archive/unarchive toggle (uses existing `is_active` field — non-destructive, reversible)
+- [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative)
+
+#### Phase C: Categories UI
+- [ ] Categories page with income/expense sections
+- [ ] Create category dialog with conflict handling
+- [ ] Edit category dialog (system categories: name disabled)
+- [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
+
+#### Phase D: Transactions UI
+- [ ] Transaction table with pagination (backend default ordering: date DESC, id DESC)
+- [ ] Filtering: account, category, direction, date range
+- [ ] Search by description (debounced)
+- [ ] Create transaction dialog (date, description, amount, direction toggle, account, category, notes)
+- [ ] Edit transaction dialog
+- [ ] Delete transaction with confirmation
+- [ ] Keyboard shortcuts (Ctrl/Cmd+N, Escape, Enter)
+
+#### Phase E: Dashboard
+- [ ] Total balance card (sum of active account balances from accounts list)
+- [ ] Account count card
+- [ ] Monthly income card (500-row limitation documented if exceeded)
+- [ ] Monthly expenses card (500-row limitation documented if exceeded)
+- [ ] Recent transactions list (5–10 items)
+- [ ] Empty state for new users
+
+#### Phase F: Polish, Testing, and Documentation
+- [ ] Empty states on all pages
+- [ ] Loading and error states
+- [ ] Frontend component tests (15–25 new tests)
+- [ ] Manual workflow verification (documented — includes cascade warning, persistence, dashboard accuracy)
+- [ ] Update CHANGELOG.md
+- [ ] Update ARCHITECTURE.md (v1.5, "Sprint 5 Complete — Personal Finance UI")
+- [ ] Update README.md
+- [ ] Finalize sprint-5 notes
+- [ ] Run full verification (cargo check, cargo test, npm test, npm build, npm lint, npm format:check, npm run dev, tauri:build)
+
+---
+
+### Sprint 6: Budgets, Goals, and Reports (Planned)
 
 **Objective:** Help users understand and plan their finances.
 
@@ -288,12 +343,14 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [ ] Month comparison view
 - [ ] Basic profit/loss for business workspaces
 - [ ] Dashboard report widgets
+- [ ] CSV import UI (column mapping, preview, file picker)
+- [ ] CSV export
 
 ---
 
-### Sprint 6: Local Security and Onboarding (Planned)
+### Sprint 7: Security, Onboarding, and Business Finance (Planned)
 
-**Objective:** Make Ledger feel safe, professional, and ready for real user data.
+**Objective:** Make Ledger feel safe and professional, and add freelancer/small business workflows.
 
 - [ ] First-launch onboarding flow
 - [ ] Local password/PIN setup
@@ -301,16 +358,8 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [ ] Auto-lock setting
 - [ ] Local database security design
 - [ ] Keychain integration research
-- [ ] Backup reminder
-- [ ] Privacy explanation screen
+- [ ] Backup reminder and privacy explanation
 - [ ] Settings foundation
-
----
-
-### Sprint 7: Lightweight Business Finance (Planned)
-
-**Objective:** Add freelancer and small business workflows.
-
 - [ ] Client management
 - [ ] Vendor management
 - [ ] Invoice creation with line items

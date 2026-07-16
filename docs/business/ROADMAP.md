@@ -339,7 +339,46 @@ Sprint 4 is complete when:
 
 ---
 
-# Sprint 5: Budgets, Goals, and Reports
+# Sprint 5: Personal Finance UI
+
+## Objective
+
+Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI.
+
+## Scope
+
+* Workspace initialization and context
+* Account UI (list, create, edit, archive, delete with cascade warnings)
+* Category UI (list, create, edit, delete with system protection)
+* Transaction UI (table, create, edit, delete, search, filter, pagination)
+* Dashboard summary (total balance, account count, monthly income, monthly expenses, recent transactions)
+* Empty states, loading states, error states, confirmation dialogs
+* Desktop keyboard shortcuts
+* Responsive desktop layout
+
+## Out of Scope
+
+* Budgets, goals, reports (Sprint 6)
+* Charts or graphs (Sprint 6)
+* CSV import
+* Onboarding wizard (Sprint 7)
+* App lock (Sprint 7)
+* Plaid, licensing, cloud sync
+
+## Exit Criteria
+
+Sprint 5 is complete when:
+
+* Users can create workspaces, accounts, categories, and transactions through the desktop UI.
+* Account balances update after transaction changes.
+* Transactions can be searched and filtered.
+* Data persists after closing and reopening the application.
+* Destructive actions have confirmation dialogs with clear consequence descriptions.
+* No budgets, goals, reports, or charts exist.
+
+---
+
+# Sprint 6: Budgets, Goals, and Reports
 
 ## Objective
 
@@ -348,13 +387,15 @@ Help users understand and plan their finances.
 ## Scope
 
 * Monthly budgets
-* Budget progress
-* Goals
-* Spending by category
+* Budget progress tracking
+* Savings goals
+* Spending by category report
 * Income vs expense report
-* Month comparison
-* Basic profit/loss view for business workspaces
+* Month comparison view
+* Basic profit/loss for business workspaces
 * Dashboard report widgets
+* CSV import UI (column mapping, preview, file picker)
+* CSV export
 
 ## Out of Scope
 
@@ -363,36 +404,48 @@ Help users understand and plan their finances.
 * Investment analysis
 * AI insights
 * Cloud sync
+* Onboarding wizard (Sprint 7)
+* App lock (Sprint 7)
 
 ## Exit Criteria
 
-Sprint 5 is complete when:
+Sprint 6 is complete when:
 
-* Users can create budgets.
-* Users can track budget progress.
+* Users can create budgets and track progress.
 * Users can create savings goals.
-* Users can view basic reports.
+* Users can view spending by category and income vs. expense reports.
+* Dashboard displays report widgets.
+* CSV import workflow allows file selection, column mapping, preview, and import.
 * Business users can see simple income/expense summaries.
 
 ---
 
-# Sprint 6: Local Security and Onboarding
+# Sprint 7: Security, Onboarding, and Business Finance
 
 ## Objective
 
-Make Ledger feel safe, professional, and ready for real user data.
+Make Ledger feel safe and professional, and add the business workflows needed by freelancers and small businesses.
 
 ## Scope
 
-* First-launch onboarding
-* Local password or PIN
+* First-launch onboarding flow
+* Local password/PIN setup
 * App unlock screen
 * Auto-lock setting
 * Local database security design
 * Keychain integration research
 * Backup reminder
-* Privacy explanation
+* Privacy explanation screen
 * Settings foundation
+* Client management
+* Vendor management
+* Invoice creation with line items
+* Invoice status tracking
+* Basic invoice PDF/export
+* Receipt attachment on transactions
+* Accounts payable tracking
+* Accounts receivable tracking
+* Business workspace reports
 
 ## Out of Scope
 
@@ -400,40 +453,6 @@ Make Ledger feel safe, professional, and ready for real user data.
 * License activation
 * Stripe
 * Production code signing
-
-## Exit Criteria
-
-Sprint 6 is complete when:
-
-* New users have a guided first-launch experience.
-* Users can protect the app with a password or PIN.
-* Users understand that their data is local.
-* Users can configure basic app settings.
-* Security limitations are documented honestly.
-
----
-
-# Sprint 7: Lightweight Business Finance
-
-## Objective
-
-Add the business workflows needed by freelancers and small businesses.
-
-## Scope
-
-* Clients
-* Vendors
-* Invoices
-* Invoice line items
-* Invoice status
-* Basic invoice PDF/export
-* Receipts
-* Accounts payable
-* Accounts receivable
-* Business workspace reports
-
-## Out of Scope
-
 * Payroll
 * Tax filing
 * Accountant portal
@@ -445,6 +464,9 @@ Add the business workflows needed by freelancers and small businesses.
 
 Sprint 7 is complete when:
 
+* New users have a guided first-launch experience.
+* Users can protect the app with a password or PIN.
+* Users understand that their data is local.
 * Business users can manage clients and vendors.
 * Business users can create invoices.
 * Business users can track receivables and payables.

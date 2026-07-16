@@ -15,9 +15,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
   - Performance targets: 10k < 50ms, 50k < 100ms, 100k < 200ms (non-gating, documented)
   - 47 acceptance criteria for Milestone 2 completion
 - Updated TASKS.md with Sprint 4 phased task breakdown (6 phases, ~30 tasks)
+- Sprint 5 implementation plan (`docs/sprint-notes/sprint-5.md`)
+  - Personal Finance UI: connect existing Tauri commands to desktop interface
+  - Scope: workspace init, accounts CRUD, categories CRUD, transactions CRUD with search/filter/sort/pagination, simple dashboard
+  - No new Rust code, commands, or migrations — UI integration only
+  - 46 acceptance criteria
+  - 6 implementation phases (Foundation → Accounts → Categories → Transactions → Dashboard → Polish)
+- Updated TASKS.md with Sprint 5 phased task breakdown (6 phases)
 
 ### Changed
 - Revised Sprint 4 plan: removed transfer type from schema, removed import_session_id, adopted signed-integer semantics without redundant type column, strengthened performance test documentation requirements
+- **Milestone 3 sprint redistribution:**
+  - Sprint 5 repurposed from "Budgets, Goals, and Reports" to "Personal Finance UI"
+  - Sprint 6 repurposed from "Local Security and Onboarding" to "Budgets, Goals, and Reports" (absorbs original Sprint 5 scope + CSV import/export)
+  - Sprint 7 combined "Local Security and Onboarding" + "Lightweight Business Finance" into "Security, Onboarding, and Business Finance"
+  - Rationale: the data platform needs a working UI before reports/budgets can be built on it
+- Refined Sprint 5 plan: added Backend Change Rule, documented 500-row dashboard limitation as known API gap, verified account archive support (is_active field exists), specified account deletion cascade warning requirements, specified category deletion behavior (system protection + SET NULL for user categories), removed obsolete Sprint-4-incomplete risk
+- Updated docs/milestones.md: Milestone 2 → Complete, Milestone 3 → In Progress, sprint names aligned
+- Updated docs/business/ROADMAP.md: Sprint 5/6/7 definitions aligned with milestone changes
 
 ## Sprint 3 — 2026-07-08
 
