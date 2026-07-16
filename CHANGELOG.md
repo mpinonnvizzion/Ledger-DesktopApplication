@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- Sprint 4 implementation plan (`docs/sprint-notes/sprint-4.md`)
+  - Transaction engine design: signed-integer amounts (no persisted type column), schema, repository, commands, TypeScript API
+  - Balance strategy: cached balance with transactional updates (ADR 0009 required before implementation)
+  - Transfer scope: fully deferred (no transfer type, no partial reservation — ADR required before any transfer work)
+  - Import foundation: atomic batch-create with shared validation pathway (no import_session_id column)
+  - Performance targets: 10k < 50ms, 50k < 100ms, 100k < 200ms (non-gating, documented)
+  - 47 acceptance criteria for Milestone 2 completion
+- Updated TASKS.md with Sprint 4 phased task breakdown (6 phases, ~30 tasks)
+
+### Changed
+- Revised Sprint 4 plan: removed transfer type from schema, removed import_session_id, adopted signed-integer semantics without redundant type column, strengthened performance test documentation requirements
+
 ## Sprint 3 — 2026-07-08
 
 ### Added
