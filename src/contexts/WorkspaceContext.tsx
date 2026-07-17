@@ -2,13 +2,7 @@
  * WorkspaceProvider — the only export from this file (satisfies react-refresh).
  * Context type and context object live in workspaceContextDef.ts.
  */
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  type ReactNode,
-} from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import { WorkspaceContext } from "./workspaceContextDef";
 import type { Workspace } from "@/types/domain";
 import { listWorkspaces, createWorkspace } from "@/api/workspaces";
@@ -31,22 +25,12 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [seedingError, setSeedingError] = useState<string | null>(null);
   // Incrementing this value causes the fetch effect to re-run
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Stable ref so the fetch effect can read the latest currentWorkspaceId on
-  // refresh without listing it as a dependency (which would cause the effect to
-  // re-run every time the user switches workspace — not what we want).
-  // Updated in its own effect (not during render) to satisfy react-hooks/refs.
-  const currentWorkspaceIdRef = useRef<number | null>(null);
-  useEffect(() => {
-    currentWorkspaceIdRef.current = currentWorkspaceId;
-  });
-
   useEffect(() => {
     let cancelled = false;
-    // Read the ref AFTER the ref-update effect has run (effects run in source order)
-    const preferredId = currentWorkspaceIdRef.current;
 
     listWorkspaces()
       .then((list) => {
@@ -61,15 +45,20 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
           return;
         }
 
-        // Selection priority: current > localStorage > first workspace
+        // Selection priority: persisted localStorage ID > first workspace.
+        // selectWorkspace() always writes to localStorage, so this covers
+        // both initial load and re-fetches after refreshWorkspaces().
         const storedRaw = localStorage.getItem(STORAGE_KEY);
         const storedId = storedRaw ? parseInt(storedRaw, 10) : null;
-        const targetId = preferredId ?? storedId;
-        const selected =
-          (targetId !== null
-            ? list.find((w) => w.id === targetId)
-            : undefined) ?? list[0];
+        const found =
+          storedId !== null ? list.find((w) => w.id === storedId) : undefined;
 
+        // Remove a stale entry that no longer corresponds to a real workspace
+        if (storedId !== null && found === undefined) {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+
+        const selected = found ?? list[0];
         setCurrentWorkspace(selected);
         setCurrentWorkspaceId(selected.id);
         localStorage.setItem(STORAGE_KEY, String(selected.id));
@@ -110,13 +99,34 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
 
   const createInitialWorkspace = useCallback(async (name: string) => {
     const workspace = await createWorkspace(name, "personal", "USD");
-    await seedDefaultCategories(workspace.id);
+
+    // Select the workspace immediately — don't block on seeding
     const list = await listWorkspaces();
     setWorkspaces(list);
     setCurrentWorkspace(workspace);
     setCurrentWorkspaceId(workspace.id);
     localStorage.setItem(STORAGE_KEY, String(workspace.id));
+
+    // Attempt seeding; surface the error without discarding the workspace
+    try {
+      await seedDefaultCategories(workspace.id);
+      setSeedingError(null);
+    } catch (err: unknown) {
+      const parsed = parseCommandError(err);
+      setSeedingError(parsed.message);
+    }
   }, []);
+
+  const retrySeedCategories = useCallback(async () => {
+    if (currentWorkspaceId === null) return;
+    try {
+      await seedDefaultCategories(currentWorkspaceId);
+      setSeedingError(null);
+    } catch (err: unknown) {
+      const parsed = parseCommandError(err);
+      setSeedingError(parsed.message);
+    }
+  }, [currentWorkspaceId]);
 
   return (
     <WorkspaceContext.Provider
@@ -126,9 +136,11 @@ export function WorkspaceProvider({ children }: WorkspaceProviderProps) {
         currentWorkspaceId,
         loading,
         error,
+        seedingError,
         refreshWorkspaces,
         selectWorkspace,
         createInitialWorkspace,
+        retrySeedCategories,
       }}
     >
       {children}

@@ -12,10 +12,14 @@ export interface WorkspaceContextValue {
   currentWorkspaceId: number | null;
   loading: boolean;
   error: string | null;
+  /** Non-null when createInitialWorkspace succeeded but seedDefaultCategories failed. */
+  seedingError: string | null;
   /** Refetch the workspace list and reselect the current workspace. */
   refreshWorkspaces: () => void;
   selectWorkspace: (id: number) => void;
   createInitialWorkspace: (name: string) => Promise<void>;
+  /** Re-runs seedDefaultCategories for the current workspace. Does not create a new workspace. */
+  retrySeedCategories: () => Promise<void>;
 }
 
 export const WorkspaceContext = createContext<WorkspaceContextValue | null>(

@@ -7,6 +7,8 @@ interface DialogProps {
   children: ReactNode;
   /** Maximum width class. Defaults to max-w-lg */
   maxWidth?: string;
+  /** Block close via Escape or the X button (e.g. during an async submit). */
+  preventClose?: boolean;
 }
 
 export function Dialog({
@@ -15,6 +17,7 @@ export function Dialog({
   title,
   children,
   maxWidth = "max-w-lg",
+  preventClose = false,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
 
@@ -41,12 +44,12 @@ export function Dialog({
 
     function handleCancel(e: Event) {
       e.preventDefault();
-      onClose();
+      if (!preventClose) onClose();
     }
 
     dialog.addEventListener("cancel", handleCancel);
     return () => dialog.removeEventListener("cancel", handleCancel);
-  }, [onClose]);
+  }, [onClose, preventClose]);
 
   // Fallback Escape handler for test environments and non-modal usage
   useEffect(() => {
@@ -55,13 +58,13 @@ export function Dialog({
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") {
         e.preventDefault();
-        onClose();
+        if (!preventClose) onClose();
       }
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open, onClose]);
+  }, [open, onClose, preventClose]);
 
   return (
     <dialog
@@ -78,21 +81,23 @@ export function Dialog({
         <h2 id="dialog-title" className="text-base font-semibold text-gray-900">
           {title}
         </h2>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close dialog"
-          className="rounded p-1 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
-        >
-          <svg
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            className="h-5 w-5"
-            aria-hidden="true"
+        {!preventClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="rounded p-1 text-gray-400 hover:text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500"
           >
-            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-          </svg>
-        </button>
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-5 w-5"
+              aria-hidden="true"
+            >
+              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Body */}

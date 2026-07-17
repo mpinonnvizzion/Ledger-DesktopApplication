@@ -26,10 +26,22 @@ export function ConfirmDialog({
   loading = false,
 }: ConfirmDialogProps) {
   return (
-    <Dialog open={open} onClose={onClose} title={title} maxWidth="max-w-md">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={title}
+      maxWidth="max-w-md"
+      preventClose={loading}
+    >
       <p className="text-sm text-gray-700">{message}</p>
       <div className="mt-6 flex justify-end gap-3">
-        <Button variant="secondary" onClick={onClose} disabled={loading}>
+        {/* autoFocus ensures initial focus lands on the safe Cancel action */}
+        <Button
+          variant="secondary"
+          onClick={onClose}
+          disabled={loading}
+          autoFocus
+        >
           {cancelLabel}
         </Button>
         <Button
