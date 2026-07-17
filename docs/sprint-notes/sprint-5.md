@@ -1,6 +1,6 @@
 # Sprint 5: Personal Finance UI — Implementation Plan
 
-**Status:** Planned
+**Status:** In Progress — Phase A Complete
 **Date:** 2026-07-16
 
 ---
@@ -243,6 +243,39 @@ Category deletion behavior depends on the category type:
    - Add route for `/categories` in `App.tsx`
 
 **Verification:** App renders with WorkspaceContext. Creating a workspace on first launch works. UI primitives render in isolation.
+
+#### Phase A Implementation Notes (2026-07-16)
+
+**Files created:**
+- `src/contexts/workspaceContextDef.ts` — context type and context object (no components, satisfies react-refresh lint rule)
+- `src/contexts/WorkspaceContext.tsx` — `WorkspaceProvider` only
+- `src/hooks/useWorkspace.ts` — typed convenience hook
+- `src/components/workspace/FirstWorkspaceSetup.tsx` — focused first-workspace creation screen
+- `src/components/ui/Button.tsx`, `Input.tsx`, `Select.tsx`, `Textarea.tsx`, `FormField.tsx`
+- `src/components/ui/Dialog.tsx`, `ConfirmDialog.tsx`
+- `src/components/ui/EmptyState.tsx`, `LoadingSpinner.tsx`, `ErrorMessage.tsx`
+- `src/components/ui/Card.tsx`, `Badge.tsx`, `Table.tsx`, `AmountInput.tsx`, `DateInput.tsx`
+- `src/pages/Categories.tsx` — placeholder
+- Test files: `WorkspaceContext.test.tsx`, `Button.test.tsx`, `Dialog.test.tsx`, `ConfirmDialog.test.tsx`, `EmptyState.test.tsx`
+
+**Files modified:**
+- `src/App.tsx` — WorkspaceProvider wrapper, AppRouter component, Categories route
+- `src/components/layout/Sidebar.tsx` — Categories nav, workspace indicator, accessible nav
+- `src/components/layout/AppShell.tsx` — Categories page title
+- `src/index.css` — dialog backdrop and border reset
+
+**Assumptions documented:**
+- Workspace selection is persisted to `localStorage` (key: `ledger_current_workspace_id`). No database schema change needed. This is non-invasive and survives app restarts. If multi-device sync is added later (Milestone 5), this preference would need to be re-evaluated.
+- `createInitialWorkspace` defaults to type `"personal"` and currency `"USD"`. These can be made configurable in the Settings page (Phase F or later).
+- Workspace selector (for multiple workspaces) is not implemented in Phase A — with one workspace, it's not needed. If multiple workspaces are common, a selector dropdown can be added to the sidebar header in Phase F.
+
+**Technical decisions:**
+- Used native `<dialog>` element for `Dialog` component: handles focus trapping, modal backdrop, and cancel event (Escape). Added document-level keydown fallback for jsdom test compatibility.
+- Context definition separated from provider into `workspaceContextDef.ts` to satisfy `react-refresh/only-export-components` ESLint rule (react-hooks v7).
+- WorkspaceContext effect uses Promise chains (not async/await) to avoid `react-hooks/set-state-in-effect` lint error (setState calls are in `.then()`/`.catch()`/`.finally()` callbacks, not synchronously in the effect body).
+- Ref updated via dedicated `useEffect` (no deps) rather than during render, per `react-hooks/refs` rule.
+
+**Test results:** 42/42 tests pass. `npm run lint` clean. `npm run build` succeeds. `cargo check` and 104 Rust tests pass (unchanged).
 
 ---
 

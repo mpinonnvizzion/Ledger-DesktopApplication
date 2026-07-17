@@ -1,0 +1,51 @@
+interface LoadingSpinnerProps {
+  /** Screen-reader label */
+  label?: string;
+  size?: "sm" | "md" | "lg";
+}
+
+const sizeClasses = {
+  sm: "h-4 w-4",
+  md: "h-6 w-6",
+  lg: "h-10 w-10",
+};
+
+export function LoadingSpinner({
+  label = "Loading…",
+  size = "md",
+}: LoadingSpinnerProps) {
+  return (
+    <div className="flex items-center justify-center" role="status">
+      <svg
+        className={`animate-spin text-primary-600 ${sizeClasses[size]}`}
+        viewBox="0 0 24 24"
+        fill="none"
+        aria-hidden="true"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8v8H4z"
+        />
+      </svg>
+      <span className="sr-only">{label}</span>
+    </div>
+  );
+}
+
+/** Full-page centered loading state */
+export function PageLoadingState({ label }: { label?: string }) {
+  return (
+    <div className="flex h-full items-center justify-center">
+      <LoadingSpinner size="lg" label={label} />
+    </div>
+  );
+}

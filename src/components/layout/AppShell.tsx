@@ -6,12 +6,13 @@ const pageTitles: Record<string, string> = {
   "/": "Dashboard",
   "/accounts": "Accounts",
   "/transactions": "Transactions",
+  "/categories": "Categories",
   "/settings": "Settings",
 };
 
 export default function AppShell() {
   const location = useLocation();
-  const title = pageTitles[location.pathname] ?? "Ledger Desktop";
+  const title = pageTitles[location.pathname] ?? "Ledger";
 
   return (
     <div className="flex h-screen bg-white font-sans">

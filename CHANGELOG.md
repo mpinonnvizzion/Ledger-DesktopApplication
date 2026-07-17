@@ -6,6 +6,55 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 5 Phase A — 2026-07-16
+
+### Added
+- **WorkspaceContext** (`src/contexts/workspaceContextDef.ts`, `src/contexts/WorkspaceContext.tsx`)
+  - `WorkspaceProvider` wraps the application; exposes `workspaces`, `currentWorkspace`, `currentWorkspaceId`, `loading`, `error`, `refreshWorkspaces`, `selectWorkspace`, `createInitialWorkspace`
+  - On launch: fetches workspace list; selects persisted selection (localStorage) or first workspace
+  - If no workspace exists: renders `FirstWorkspaceSetup` focused creation screen
+  - After first workspace created: seeds default categories via `seedDefaultCategories`
+  - Context definition separated from provider component to satisfy `react-refresh` lint rule
+  - Workspace selection persisted to `localStorage` (`ledger_current_workspace_id`)
+- **`useWorkspace` hook** (`src/hooks/useWorkspace.ts`) — typed convenience hook for context access
+- **`FirstWorkspaceSetup` component** (`src/components/workspace/FirstWorkspaceSetup.tsx`)
+  - Focused creation screen with name input (default "Personal Finance") and create button
+  - Shows error on API failure; loading state during submission
+- **UI primitives** (`src/components/ui/`)
+  - `Button` — primary/secondary/danger variants; disabled and loading states; ARIA attributes
+  - `Input` — label, error, disabled; ARIA `aria-invalid` and `aria-describedby`
+  - `Select` — label, options array, error, placeholder option
+  - `Textarea` — label, error, disabled, resizable
+  - `FormField` — label + hint + error wrapper for any child input
+  - `Dialog` — native `<dialog>` element; `showModal()`/`close()`; Escape via `cancel` event + document keydown fallback; close button
+  - `ConfirmDialog` — extends Dialog; destructive variant; loading state disables both buttons
+  - `EmptyState` — title, description, optional action button, optional icon slot
+  - `LoadingSpinner` + `PageLoadingState` — sm/md/lg sizes; screen-reader label; centered full-page variant
+  - `ErrorMessage` + `PageErrorState` — ARIA `role="alert"`; optional retry action
+  - `Card` + `CardHeader` — border/shadow wrapper for dashboard cards
+  - `Badge` — default/success/warning/error/info/system color variants
+  - `Table` — generic typed component; sortable columns with ARIA `aria-sort`; loading and empty state slots
+  - `AmountInput` — dollar text input; formats on blur; converts to/from cents via `formatAmount`/`parseAmount`
+  - `DateInput` — native `<input type="date">` wrapper with label and error
+- **Application shell refinements**
+  - `Categories` page added (placeholder for Phase C)
+  - `/categories` route added to `App.tsx`
+  - Sidebar: Categories nav item added; workspace name indicator shown at bottom; improved icon set; accessible `aria-label` on `<nav>`
+  - `AppShell`: Categories added to page-title map
+  - `App.tsx`: `WorkspaceProvider` wraps router; `AppRouter` handles loading/error/no-workspace render paths
+- **`dialog` CSS** (`src/index.css`): `::backdrop` semi-transparent overlay; reset default browser border/padding
+- **33 new frontend tests** (42 total)
+  - `WorkspaceContext`: 8 tests — existing workspace selection, localStorage persistence, selectWorkspace, empty workspace list, createInitialWorkspace, seeding order, API error state, recovery after refresh
+  - `Button`: 7 tests — variants, click, disabled, loading, type
+  - `Dialog`: 6 tests — render, close button, Escape key, showModal/close lifecycle
+  - `ConfirmDialog`: 6 tests — render, confirm, cancel, custom labels, loading, Escape
+  - `EmptyState`: 6 tests — title, description, action button, no button without action
+
+### Changed
+- `App.tsx` restructured: `WorkspaceProvider` is outermost wrapper; `AppRouter` is an inner component that reads workspace context
+- `Sidebar.tsx` updated: Categories nav item added; workspace indicator footer; accessible nav landmark
+- `AppShell.tsx` updated: `/categories` title registered
+
 ## Sprint 4 — 2026-07-16
 
 ### Added

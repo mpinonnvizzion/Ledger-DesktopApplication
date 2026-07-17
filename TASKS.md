@@ -282,11 +282,15 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 
 **Implementation Plan:** [docs/sprint-notes/sprint-5.md](docs/sprint-notes/sprint-5.md)
 
-#### Phase A: Foundation — Context, Primitives, and Layout
-- [ ] Create WorkspaceContext (first-launch workspace creation, default category seeding)
-- [ ] Build UI primitives: Button, Input, Select, Dialog, ConfirmDialog, Table, EmptyState, LoadingSpinner, ErrorMessage, AmountInput, DateInput
-- [ ] Add Categories route and sidebar navigation entry
-- [ ] Refine sidebar icons and layout
+#### Phase A: Foundation — Context, Primitives, and Layout ✅ Complete
+- [x] Create WorkspaceContext (first-launch workspace creation, default category seeding)
+- [x] Build UI primitives: Button, Input, Select, Textarea, FormField, Dialog, ConfirmDialog, Table, EmptyState, LoadingSpinner, ErrorMessage, Card, Badge, AmountInput, DateInput
+- [x] Add Categories route and sidebar navigation entry
+- [x] Refine sidebar icons, layout, and workspace indicator in sidebar
+- [x] WorkspaceProvider wraps app; AppRouter handles loading/error/no-workspace states
+- [x] FirstWorkspaceSetup focused creation screen
+- [x] Context definition separated from provider component (workspaceContextDef.ts)
+- [x] 33 new frontend tests (42 total — WorkspaceContext: 8, Button: 7, Dialog: 6, ConfirmDialog: 6, EmptyState: 6)
 
 #### Phase B: Accounts UI
 - [ ] Accounts list page with balances, loading/empty/error states
