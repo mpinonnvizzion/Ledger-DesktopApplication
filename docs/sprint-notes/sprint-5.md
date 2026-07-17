@@ -1,6 +1,6 @@
 # Sprint 5: Personal Finance UI — Implementation Plan
 
-**Status:** In Progress — Phase B2 (create-account workflow) Complete
+**Status:** In Progress — Phase B3 (edit-account workflow) Complete
 **Date:** 2026-07-17
 
 ---
@@ -350,6 +350,31 @@ Create Account workflow (item 5) implemented. Items 6–8 (edit, archive/unarchi
 **Dialog defect found and fixed (in this component, not in the shared `Dialog`):** Native `<dialog>` `showModal()` focuses the first focusable descendant, which was the header's close (×) button, not the name field. Fixed with a small effect that focuses the name input by id after open — no change to the shared `Dialog` component was needed.
 
 **Verification:** `npm run test` (71/71 passing, 16 new), `npm run lint`, `npm run format:check`, `npm run build`, `cargo check`, `cargo test` (104/104 passing, unchanged) all pass. `npm run dev` (`tauri dev`) compiles and launches the desktop binary cleanly with no runtime errors in the log. Interactive manual verification (clicking through the create-account flow in the native window, confirming persistence across restart) was **not** performed — no tooling is available to drive a native Tauri/WebView window (unlike the Chrome-only browser automation tools). This is a known verification gap; see the Phase B2 review report for details.
+
+#### Phase B3 Implementation Notes (2026-07-17)
+
+Edit Account workflow (item 6) implemented. Items 7–8 (archive/unarchive, delete) are **not** implemented in this phase — deferred to Phase B4+.
+
+**Files created:**
+- `src/components/accounts/EditAccountDialog.tsx` — colocated edit-account dialog
+- `src/components/accounts/EditAccountDialog.test.tsx`
+
+**Files modified:**
+- `src/pages/Accounts.tsx` — Actions column with a per-row "Edit [name]" button, `editingAccount`/`showEditDialog` state, dialog wiring
+- `src/pages/Accounts.test.tsx` — new Actions-column and edit-workflow tests; scoped several existing/new queries to the specific dialog (see Dialog defect below)
+- `src/components/ui/Dialog.tsx` — unique title id via `useId()` (see Dialog defect below)
+
+**Backend Change Rule check:** No backend gap encountered, but a genuine contract mismatch with the plan's speculative field list was found during inspection. `UpdateAccountInput` (Rust and TypeScript) has fields `name?`, `institution_name?`, `is_active?` only — **no `account_type` field exists**. The `update_account` Tauri command and the `updateAccount` TS wrapper (`updateAccount(id, name?, institutionName?, isActive?)` — positional, not an options object) confirm this. Per "do not expose fields unsupported by the update API," the edit dialog displays Account Type as a disabled, non-submitted field (populated from the account, labeled "Account type cannot be changed after creation") rather than as an editable control that would silently no-op. This matches the plan's own Phase B item 6, which lists only name and institution as pre-populated/editable fields.
+
+**Update repository merge semantics (a second finding from inspection):** `AccountRepository::update` treats an omitted (`None`) field as "preserve the existing stored value," not "clear it" — unlike `create`, which has no such merge step. Concretely: `institution_name: None => existing.institution_name`. This means the create dialog's pattern of mapping a blank field to `undefined` would be wrong for edit — sending `undefined` for a cleared institution field would silently leave the old value in place. The edit dialog therefore always sends the trimmed institution string explicitly (including `""` when the user clears it), never `undefined`, so clearing actually clears. One residual nuance: the repository stores the cleared value as a literal empty string, not SQL `NULL` (there is no way through the current API to null out an already-set `institution_name`). This is not a functional problem — the table's display check (`account.institution_name && (...)`) treats `""` and `null` identically — so no backend change was made per the Backend Change Rule.
+
+**Fields implemented:** Account Name (required, editable), Account Type (read-only display, not submitted — see above), Institution (optional, editable).
+
+**Validation:** Name required and not whitespace-only (trimmed before validation and submission), mirroring `AccountRepository::update`'s own trim-and-reject-empty rule. Account Type has no active validation since it is fixed and always populated from the existing account.
+
+**Dialog defect found and fixed (in the shared `Dialog` component, not this feature's own component):** `Dialog.tsx` hardcoded `id="dialog-title"` on its heading and referenced it via a matching hardcoded `aria-labelledby`. This was invisible while only one `Dialog` instance ever existed on a page (Sprint 5 Phase A/B1/B2). With the Edit dialog added, the Accounts page now always mounts two `Dialog` instances at once (Create and Edit, each individually toggling its own `open` prop, matching the existing B2 pattern) — producing two elements with the same `id` and an ambiguous `aria-labelledby` target, an invalid-HTML and real accessibility defect once two dialogs coexist. Fixed by generating the title id via `useId()` per `Dialog` instance. This also incidentally surfaced that this project's jsdom/Testing Library test environment does not treat a closed (no `open` attribute) native `<dialog>`'s contents as excluded from text/label queries (even though real Chromium hides them via `display: none`), so several page-level tests needed their queries scoped to the specific open dialog (via `within(screen.getByRole("dialog", { name: ... }))`) to avoid matching the other, closed dialog's identically-labeled fields. One pre-existing Phase B2 test (`displays human-readable account types and formatted balances`) was already coincidentally relying on this same ambiguity resolving in its favor due to assertion timing; it was fixed to scope its query to the table row rather than weakened.
+
+**Verification:** `npm run test` (92/92 passing, 21 new), `npm run lint`, `npm run format:check`, `npm run build`, `cargo check`, `cargo test` (104/104 passing, unchanged — confirms no backend code was touched) all pass. `npm run dev` (`tauri dev`) compiles and launches the desktop binary cleanly with no runtime errors in the log. As with Phase B2, interactive manual verification (clicking through the edit-account flow in the native window, confirming persistence across restart) was **not** performed — no tooling is available to drive a native Tauri/WebView window. This is a known, recurring verification gap; see the Phase B3 review report for details.
 
 ---
 

@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 5 Phase B3 — 2026-07-17
+
+### Added
+- **Edit Account workflow** (`src/components/accounts/EditAccountDialog.tsx`)
+  - Accounts table gains an "Actions" column with a keyboard-accessible "Edit [account name]" button per row
+  - Dialog form: account name (required, editable), account type (read-only display — not supported by the update API), institution name (optional, editable)
+  - Form is pre-populated from the selected account; reopening for a different account never leaks stale values
+  - Client-side validation mirrors backend rules: name required and not whitespace-only
+  - On success: dialog closes, account list refetches, updated values appear immediately with updated summary totals — no full-page reload
+  - API failures are shown as a sanitized, form-level error while preserving entered values
+  - Duplicate submission prevented while a request is in flight; Cancel and Escape disabled during submission
+  - Submit button label "Save Changes"; Cancel discards changes without calling the update API
+  - 21 new frontend tests covering the edit dialog and the page-level edit workflow (92 total, up from 71 after Phase B2)
+
+### Fixed
+- **`Dialog` component** (`src/components/ui/Dialog.tsx`) — the dialog title used a hardcoded `id="dialog-title"`, which produced duplicate IDs and an ambiguous `aria-labelledby` once two `Dialog` instances (Create and Edit) are mounted on the same page at once. Now uses `useId()` to generate a unique title id per instance.
+
+### Notes
+- `UpdateAccountInput` (Rust and TypeScript) has no `account_type` field — account type cannot be changed after creation via the existing update API. The edit dialog displays it (read-only) for context but does not submit it. No backend change was made; this preserves the documented Phase B item 6 scope (name and institution only).
+- The update repository's merge semantics differ from create: an omitted (`undefined`) field means "preserve the existing value," not "clear it." The edit dialog therefore always sends the trimmed institution value as an explicit string (including `""` when cleared) rather than omitting it, so clearing the field actually clears it.
+- Archive/unarchive and delete-with-cascade-warning remain out of scope for this phase; deferred to Phase B4+.
+
 ## Sprint 5 Phase B2 — 2026-07-17
 
 ### Added

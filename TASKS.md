@@ -295,7 +295,7 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 #### Phase B: Accounts UI
 - [x] Accounts list page with balances, loading/empty/error states (Phase B1)
 - [x] Create account dialog with validation (Phase B2)
-- [ ] Edit account dialog (name, institution)
+- [x] Edit account dialog (name, institution) (Phase B3)
 - [ ] Archive/unarchive toggle (uses existing `is_active` field — non-destructive, reversible)
 - [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative)
 

@@ -1,4 +1,4 @@
-import { useRef, useEffect, type ReactNode } from "react";
+import { useId, useRef, useEffect, type ReactNode } from "react";
 
 interface DialogProps {
   open: boolean;
@@ -20,6 +20,10 @@ export function Dialog({
   preventClose = false,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  // Multiple Dialog instances can be mounted at once (each toggling its own
+  // `open` prop), so the title id must be unique per instance rather than a
+  // fixed string, or aria-labelledby resolves ambiguously across instances.
+  const titleId = useId();
 
   // Open/close native dialog
   useEffect(() => {
@@ -74,11 +78,11 @@ export function Dialog({
         "backdrop:bg-black/50",
         maxWidth,
       ].join(" ")}
-      aria-labelledby="dialog-title"
+      aria-labelledby={titleId}
     >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-        <h2 id="dialog-title" className="text-base font-semibold text-gray-900">
+        <h2 id={titleId} className="text-base font-semibold text-gray-900">
           {title}
         </h2>
         {!preventClose && (

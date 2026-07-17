@@ -16,14 +16,20 @@ vi.mock("@/hooks/useWorkspace", () => ({
 vi.mock("@/api/accounts", () => ({
   listAccountsByWorkspace: vi.fn(),
   createAccount: vi.fn(),
+  updateAccount: vi.fn(),
 }));
 
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { listAccountsByWorkspace, createAccount } from "@/api/accounts";
+import {
+  listAccountsByWorkspace,
+  createAccount,
+  updateAccount,
+} from "@/api/accounts";
 
 const mockUseWorkspace = vi.mocked(useWorkspace);
 const mockListAccountsByWorkspace = vi.mocked(listAccountsByWorkspace);
 const mockCreateAccount = vi.mocked(createAccount);
+const mockUpdateAccount = vi.mocked(updateAccount);
 
 function workspaceValue(
   currentWorkspaceId: number | null,
@@ -212,10 +218,11 @@ describe("Accounts — account list rendering", () => {
 
     render(<Accounts />);
 
-    await waitFor(() =>
-      expect(screen.getByText("Credit Card")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    // Scoped to the table row: the always-mounted Create/Edit dialogs also
+    // render "Credit Card" as a Select option, so an unscoped query is ambiguous.
     const row = screen.getAllByRole("row")[1];
+    expect(within(row).getByText("Credit Card")).toBeInTheDocument();
     expect(within(row).getByText("$-42.50")).toBeInTheDocument();
   });
 });
@@ -311,17 +318,22 @@ describe("Accounts — create-account workflow", () => {
     );
 
     fireEvent.click(screen.getAllByRole("button", { name: "New Account" })[0]);
+    // Scoped to the Create dialog: the always-mounted Edit dialog shares the
+    // same field labels, so unscoped label queries are ambiguous.
+    const createDialog = screen.getByRole("dialog", { name: "New Account" });
     expect(
       screen.getByRole("heading", { name: "New Account" }),
     ).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("Account Name"), {
+    fireEvent.change(within(createDialog).getByLabelText("Account Name"), {
       target: { value: "Everyday Checking" },
     });
-    fireEvent.change(screen.getByLabelText("Account Type"), {
+    fireEvent.change(within(createDialog).getByLabelText("Account Type"), {
       target: { value: "checking" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
+    fireEvent.click(
+      within(createDialog).getByRole("button", { name: "Create Account" }),
+    );
 
     await waitFor(() =>
       expect(mockCreateAccount).toHaveBeenCalledWith(
@@ -348,5 +360,178 @@ describe("Accounts — create-account workflow", () => {
       expect(screen.getByText("Everyday Checking")).toBeInTheDocument(),
     );
     expect(screen.queryByText("No accounts yet")).not.toBeInTheDocument();
+  });
+});
+
+describe("Accounts — Actions column", () => {
+  it("renders an Actions column header", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByRole("columnheader", { name: "Actions" }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders an accessible Edit action for each account", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday" }),
+      makeAccount({ id: 2, name: "Savings" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByRole("button", { name: "Edit Everyday" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Edit Savings" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Accounts — edit-account workflow", () => {
+  // Scoped to the Edit dialog: the always-mounted Create dialog shares the
+  // same field labels, so unscoped label queries are ambiguous.
+  function editDialog() {
+    return screen.getByRole("dialog", { name: "Edit Account" });
+  }
+
+  it("opens the edit dialog populated with the selected account's values", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({
+        id: 1,
+        name: "Everyday",
+        institution_name: "Chase",
+      }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Edit Everyday" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Edit Account" }),
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(within(editDialog()).getByLabelText("Account Name")).toHaveValue(
+        "Everyday",
+      ),
+    );
+    expect(
+      within(editDialog()).getByLabelText("Institution (optional)"),
+    ).toHaveValue("Chase");
+  });
+
+  it("closes without calling updateAccount when Cancel is clicked", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Edit Everyday" }));
+    fireEvent.click(
+      within(editDialog()).getByRole("button", { name: "Cancel" }),
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "Edit Account" }),
+    ).not.toBeInTheDocument();
+    expect(mockUpdateAccount).not.toHaveBeenCalled();
+  });
+
+  it("closes, resets, refetches, and renders updated values after a successful save", async () => {
+    const original = makeAccount({
+      id: 1,
+      name: "Everyday",
+      institution_name: "Chase",
+    });
+    const updated = makeAccount({
+      id: 1,
+      name: "Everyday Checking",
+      institution_name: "Chase",
+    });
+    mockListAccountsByWorkspace
+      .mockResolvedValueOnce([original])
+      .mockResolvedValueOnce([updated]);
+    mockUpdateAccount.mockResolvedValue(updated);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Edit Everyday" }));
+    await waitFor(() =>
+      expect(within(editDialog()).getByLabelText("Account Name")).toHaveValue(
+        "Everyday",
+      ),
+    );
+    fireEvent.change(within(editDialog()).getByLabelText("Account Name"), {
+      target: { value: "Everyday Checking" },
+    });
+    fireEvent.click(
+      within(editDialog()).getByRole("button", { name: "Save Changes" }),
+    );
+
+    await waitFor(() =>
+      expect(mockUpdateAccount).toHaveBeenCalledWith(
+        1,
+        "Everyday Checking",
+        "Chase",
+        undefined,
+      ),
+    );
+
+    // Dialog closes
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Edit Account" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    // Refetches and renders the canonical refreshed value
+    await waitFor(() =>
+      expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Everyday Checking")).toBeInTheDocument(),
+    );
+  });
+
+  it("does not leak stale form state when editing a different account", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Account A", institution_name: "Bank A" }),
+      makeAccount({ id: 2, name: "Account B", institution_name: "Bank B" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit Account A" }));
+    fireEvent.change(within(editDialog()).getByLabelText("Account Name"), {
+      target: { value: "Modified A" },
+    });
+    fireEvent.click(
+      within(editDialog()).getByRole("button", { name: "Cancel" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Edit Account B" }));
+
+    await waitFor(() =>
+      expect(within(editDialog()).getByLabelText("Account Name")).toHaveValue(
+        "Account B",
+      ),
+    );
+    expect(
+      within(editDialog()).getByLabelText("Institution (optional)"),
+    ).toHaveValue("Bank B");
   });
 });

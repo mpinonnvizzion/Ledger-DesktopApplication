@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { CreateAccountDialog } from "@/components/accounts/CreateAccountDialog";
+import { EditAccountDialog } from "@/components/accounts/EditAccountDialog";
 
 // Active accounts first, then archived; alphabetical by name within each group.
 // The backend does not guarantee this ordering, so it's applied client-side.
@@ -31,6 +32,8 @@ export default function Accounts() {
   const [error, setError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
 
   useEffect(() => {
     if (currentWorkspaceId === null) {
@@ -80,6 +83,20 @@ export default function Accounts() {
 
   function handleAccountCreated() {
     setShowCreateDialog(false);
+    setRetryToken((token) => token + 1);
+  }
+
+  function handleEditClick(account: Account) {
+    setEditingAccount(account);
+    setShowEditDialog(true);
+  }
+
+  function handleEditClose() {
+    setShowEditDialog(false);
+  }
+
+  function handleAccountUpdated() {
+    setShowEditDialog(false);
     setRetryToken((token) => token + 1);
   }
 
@@ -171,6 +188,12 @@ export default function Accounts() {
                   >
                     Status
                   </th>
+                  <th
+                    scope="col"
+                    className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500"
+                  >
+                    Actions
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -214,6 +237,17 @@ export default function Accounts() {
                           <Badge variant="default">Archived</Badge>
                         )}
                       </td>
+                      <td className="px-4 py-3 text-right text-sm">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleEditClick(account)}
+                          aria-label={`Edit ${account.name}`}
+                        >
+                          Edit
+                        </Button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -229,6 +263,15 @@ export default function Accounts() {
           workspaceId={currentWorkspaceId}
           onClose={() => setShowCreateDialog(false)}
           onCreated={handleAccountCreated}
+        />
+      )}
+
+      {currentWorkspaceId !== null && (
+        <EditAccountDialog
+          open={showEditDialog}
+          account={editingAccount}
+          onClose={handleEditClose}
+          onUpdated={handleAccountUpdated}
         />
       )}
     </div>
