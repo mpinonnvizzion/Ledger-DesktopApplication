@@ -1,7 +1,7 @@
 # Sprint 5: Personal Finance UI — Implementation Plan
 
-**Status:** In Progress — Phase A Complete
-**Date:** 2026-07-16
+**Status:** In Progress — Phase B2 (create-account workflow) Complete
+**Date:** 2026-07-17
 
 ---
 
@@ -319,6 +319,37 @@ Category deletion behavior depends on the category type:
    - On confirm: call `deleteAccount(id)`, refetch list
 
 **Verification:** User can create, view, edit, archive/unarchive, and delete accounts. Balances display correctly. Cascade warning appears for accounts with transactions.
+
+#### Phase B1 Implementation Notes (2026-07-16)
+
+Read-only accounts list (item 4) implemented and committed. See commit `df416d6`.
+
+#### Phase B2 Implementation Notes (2026-07-17)
+
+Create Account workflow (item 5) implemented. Items 6–8 (edit, archive/unarchive, delete) are **not** implemented in this phase — deferred to Phase B3.
+
+**Files created:**
+- `src/lib/accountTypes.ts` — shared `ACCOUNT_TYPE_LABELS`, `formatAccountType`, `ACCOUNT_TYPE_OPTIONS`, used by both the accounts table and the create dialog
+- `src/components/accounts/CreateAccountDialog.tsx` — colocated create-account dialog
+- `src/components/accounts/CreateAccountDialog.test.tsx`
+
+**Files modified:**
+- `src/pages/Accounts.tsx` — header "New Account" action, empty-state action and production copy, dialog wiring, background-refresh loading state that avoids replacing an already-rendered table
+- `src/pages/Accounts.test.tsx` — updated copy assertions, added header/empty-state/create-workflow tests
+
+**Backend Change Rule check:** No backend gap encountered. `CreateAccountInput` (Rust and TypeScript) has no `balance` field — new accounts always start at `balance = 0`, set by the repository, not the caller. Per the plan ("If opening balance is not supported by the create API, omit the field rather than inventing backend behavior"), the create form has no balance/opening-balance field. `currency` is accepted by the API but always passed as `undefined` from the form (no currency selector), so the backend defaults it to the workspace's currency — this matches the plan's "optional, defaults to workspace currency" without adding a selector control.
+
+**Fields implemented:** Account Name (required), Account Type (required select, options from `ACCOUNT_TYPE_OPTIONS`), Institution (optional).
+
+**Validation:** Name required and not whitespace-only (trimmed before validation and submission); account type required. Mirrors backend rules (`AccountRepository::create` rejects empty/whitespace-only names) without duplicating backend length limits.
+
+**Monetary parsing:** Not applicable — no balance field exists on the create form (see Backend Change Rule check above).
+
+**Post-create refresh:** Reuses the existing B1 retry mechanism (`retryToken` state bump) rather than a new fetch abstraction. The full-page loading spinner is now gated on `loading && accounts.length === 0`, so a post-create refresh never replaces an already-visible table with a spinner.
+
+**Dialog defect found and fixed (in this component, not in the shared `Dialog`):** Native `<dialog>` `showModal()` focuses the first focusable descendant, which was the header's close (×) button, not the name field. Fixed with a small effect that focuses the name input by id after open — no change to the shared `Dialog` component was needed.
+
+**Verification:** `npm run test` (71/71 passing, 16 new), `npm run lint`, `npm run format:check`, `npm run build`, `cargo check`, `cargo test` (104/104 passing, unchanged) all pass. `npm run dev` (`tauri dev`) compiles and launches the desktop binary cleanly with no runtime errors in the log. Interactive manual verification (clicking through the create-account flow in the native window, confirming persistence across restart) was **not** performed — no tooling is available to drive a native Tauri/WebView window (unlike the Chrome-only browser automation tools). This is a known verification gap; see the Phase B2 review report for details.
 
 ---
 

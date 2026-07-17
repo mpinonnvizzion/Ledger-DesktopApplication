@@ -293,8 +293,8 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [x] 33 new frontend tests (42 total — WorkspaceContext: 8, Button: 7, Dialog: 6, ConfirmDialog: 6, EmptyState: 6)
 
 #### Phase B: Accounts UI
-- [ ] Accounts list page with balances, loading/empty/error states
-- [ ] Create account dialog with validation
+- [x] Accounts list page with balances, loading/empty/error states (Phase B1)
+- [x] Create account dialog with validation (Phase B2)
 - [ ] Edit account dialog (name, institution)
 - [ ] Archive/unarchive toggle (uses existing `is_active` field — non-destructive, reversible)
 - [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative)

@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 5 Phase B2 — 2026-07-17
+
+### Added
+- **Create Account workflow** (`src/components/accounts/CreateAccountDialog.tsx`)
+  - "New Account" action in the Accounts page header and in the empty state
+  - Dialog form: account name (required), account type (required select), institution name (optional)
+  - Client-side validation mirrors backend rules: name required and not whitespace-only, account type required
+  - On success: dialog closes, form resets, account list refetches, new account appears immediately with updated summary totals — no full-page reload or flash of the loading spinner over an already-rendered table
+  - API failures are shown as a sanitized, form-level error while preserving entered values
+  - Duplicate submission prevented while a request is in flight; Cancel and Escape disabled during submission
+  - Reopening the dialog always starts from a clean state (no stale values or errors)
+- **`src/lib/accountTypes.ts`** — shared `ACCOUNT_TYPE_LABELS`, `formatAccountType`, and `ACCOUNT_TYPE_OPTIONS`, used by both the accounts table and the create dialog
+- Accounts page empty-state copy updated from placeholder "coming in a future update" language to production copy, with a "New Account" call to action
+- 16 new frontend tests covering the create-account dialog and the page-level create workflow (71 total, up from 55 after Phase B1)
+
+### Changed
+- Accounts page subtitle updated from "A read-only view of your accounts and balances." to "Manage your financial accounts and balances."
+
 ## Sprint 5 Phase A — 2026-07-16
 
 ### Added

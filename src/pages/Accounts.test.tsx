@@ -15,13 +15,15 @@ vi.mock("@/hooks/useWorkspace", () => ({
 }));
 vi.mock("@/api/accounts", () => ({
   listAccountsByWorkspace: vi.fn(),
+  createAccount: vi.fn(),
 }));
 
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { listAccountsByWorkspace } from "@/api/accounts";
+import { listAccountsByWorkspace, createAccount } from "@/api/accounts";
 
 const mockUseWorkspace = vi.mocked(useWorkspace);
 const mockListAccountsByWorkspace = vi.mocked(listAccountsByWorkspace);
+const mockCreateAccount = vi.mocked(createAccount);
 
 function workspaceValue(
   currentWorkspaceId: number | null,
@@ -59,6 +61,14 @@ function makeAccount(overrides: Partial<Account>): Account {
 beforeEach(() => {
   vi.clearAllMocks();
   mockUseWorkspace.mockReturnValue(workspaceValue(1));
+  HTMLDialogElement.prototype.showModal = vi.fn(function (
+    this: HTMLDialogElement,
+  ) {
+    this.setAttribute("open", "");
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+  });
 });
 
 describe("Accounts — loading state", () => {
@@ -92,9 +102,23 @@ describe("Accounts — empty state", () => {
       expect(screen.getByText("No accounts yet")).toBeInTheDocument(),
     );
     expect(
-      screen.getByText("Account creation is coming in a future update."),
+      screen.getByText(
+        "Add your first financial account to begin tracking balances and transactions.",
+      ),
     ).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+  });
+
+  it("shows a New Account action in the empty state", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([]);
+
+    render(<Accounts />);
+
+    await waitFor(() =>
+      expect(screen.getByText("No accounts yet")).toBeInTheDocument(),
+    );
+    const buttons = screen.getAllByRole("button", { name: "New Account" });
+    expect(buttons).toHaveLength(2); // header action + empty-state action
   });
 });
 
@@ -235,5 +259,94 @@ describe("Accounts — refetch on workspace change", () => {
       expect(mockListAccountsByWorkspace).toHaveBeenCalledWith(2),
     );
     expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("Accounts — New Account header action", () => {
+  it("shows a New Account button in the page header", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByRole("button", { name: "New Account" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the create-account dialog when clicked", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday" }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "New Account" }));
+
+    expect(
+      screen.getByRole("heading", { name: "New Account" }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("Accounts — create-account workflow", () => {
+  it("closes and resets the dialog, refetches, and renders the new account", async () => {
+    const created = makeAccount({
+      id: 42,
+      name: "Everyday Checking",
+      account_type: "checking",
+    });
+    mockListAccountsByWorkspace
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([created]);
+    mockCreateAccount.mockResolvedValue(created);
+
+    render(<Accounts />);
+
+    await waitFor(() =>
+      expect(screen.getByText("No accounts yet")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "New Account" })[0]);
+    expect(
+      screen.getByRole("heading", { name: "New Account" }),
+    ).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Account Name"), {
+      target: { value: "Everyday Checking" },
+    });
+    fireEvent.change(screen.getByLabelText("Account Type"), {
+      target: { value: "checking" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create Account" }));
+
+    await waitFor(() =>
+      expect(mockCreateAccount).toHaveBeenCalledWith(
+        1,
+        "Everyday Checking",
+        "checking",
+        undefined,
+        undefined,
+      ),
+    );
+
+    // Dialog closes and form resets
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "New Account" }),
+      ).not.toBeInTheDocument(),
+    );
+
+    // Refetches and the empty state is replaced by the account table
+    await waitFor(() =>
+      expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Everyday Checking")).toBeInTheDocument(),
+    );
+    expect(screen.queryByText("No accounts yet")).not.toBeInTheDocument();
   });
 });

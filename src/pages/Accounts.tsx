@@ -1,28 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { listAccountsByWorkspace } from "@/api/accounts";
-import type { Account, AccountType } from "@/types/domain";
+import type { Account } from "@/types/domain";
 import { formatAmount } from "@/lib/format";
 import { parseCommandError } from "@/lib/errors";
+import { formatAccountType } from "@/lib/accountTypes";
 import { PageLoadingState } from "@/components/ui/LoadingSpinner";
 import { PageErrorState } from "@/components/ui/ErrorMessage";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-
-const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {
-  checking: "Checking",
-  savings: "Savings",
-  credit_card: "Credit Card",
-  cash: "Cash",
-  investment: "Investment",
-  loan: "Loan",
-  other: "Other",
-};
-
-function formatAccountType(type: AccountType): string {
-  return ACCOUNT_TYPE_LABELS[type];
-}
+import { Button } from "@/components/ui/Button";
+import { CreateAccountDialog } from "@/components/accounts/CreateAccountDialog";
 
 // Active accounts first, then archived; alphabetical by name within each group.
 // The backend does not guarantee this ordering, so it's applied client-side.
@@ -41,6 +30,7 @@ export default function Accounts() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     if (currentWorkspaceId === null) {
@@ -88,29 +78,45 @@ export default function Accounts() {
     setRetryToken((token) => token + 1);
   }
 
+  function handleAccountCreated() {
+    setShowCreateDialog(false);
+    setRetryToken((token) => token + 1);
+  }
+
+  // Only the initial fetch (no accounts rendered yet) shows the full-page
+  // spinner; a post-create refresh must not replace an already-visible table.
+  const showFullPageLoading = loading && accounts.length === 0;
+
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-semibold text-gray-900">Accounts</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          A read-only view of your accounts and balances.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Accounts</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Manage your financial accounts and balances.
+          </p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>New Account</Button>
       </header>
 
-      {loading && <PageLoadingState label="Loading accounts…" />}
+      {showFullPageLoading && <PageLoadingState label="Loading accounts…" />}
 
-      {!loading && error && (
+      {!showFullPageLoading && error && (
         <PageErrorState message={error} onRetry={handleRetry} />
       )}
 
-      {!loading && !error && sortedAccounts.length === 0 && (
+      {!showFullPageLoading && !error && sortedAccounts.length === 0 && (
         <EmptyState
           title="No accounts yet"
-          description="Account creation is coming in a future update."
+          description="Add your first financial account to begin tracking balances and transactions."
+          action={{
+            label: "New Account",
+            onClick: () => setShowCreateDialog(true),
+          }}
         />
       )}
 
-      {!loading && !error && sortedAccounts.length > 0 && (
+      {!showFullPageLoading && !error && sortedAccounts.length > 0 && (
         <>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Card>
@@ -215,6 +221,15 @@ export default function Accounts() {
             </table>
           </div>
         </>
+      )}
+
+      {currentWorkspaceId !== null && (
+        <CreateAccountDialog
+          open={showCreateDialog}
+          workspaceId={currentWorkspaceId}
+          onClose={() => setShowCreateDialog(false)}
+          onCreated={handleAccountCreated}
+        />
       )}
     </div>
   );
