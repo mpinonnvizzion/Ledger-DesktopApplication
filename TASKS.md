@@ -227,48 +227,48 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 **Implementation Plan:** [docs/sprint-notes/sprint-4.md](docs/sprint-notes/sprint-4.md)
 
 #### Phase A: Transaction Architecture and Domain Types
-- [ ] Create ADR 0009 (cached account balance strategy) — before repository code
-- [ ] Create `src-tauri/src/models/transaction.rs` (TransactionStatus, TransactionSource, Direction enums; Transaction entity; Create/Update input structs; TransactionQuery; TransactionListResult)
-- [ ] Update `models/mod.rs` to export transaction module
-- [ ] Verify compilation with `cargo check`
+- [x] Create ADR 0009 (cached account balance strategy) — before repository code
+- [x] Create `src-tauri/src/models/transaction.rs` (TransactionStatus, TransactionSource, Direction enums; Transaction entity; Create/Update input structs; TransactionQuery; TransactionListResult)
+- [x] Update `models/mod.rs` to export transaction module
+- [x] Verify compilation with `cargo check`
 
 #### Phase B: Database Migration
-- [ ] Create `src-tauri/migrations/0005_transactions.sql` (table with amount_minor, FKs, CHECK(amount_minor != 0), 4 indexes — no transaction_type column, no import_session_id column)
-- [ ] Register migration 0005 in `db/migration.rs`
-- [ ] Verify migration applies (cargo test — migration tests pass, schema version = 5)
+- [x] Create `src-tauri/migrations/0005_transactions.sql` (table with amount_minor, FKs, CHECK(amount_minor != 0), 4 indexes — no transaction_type column, no import_session_id column)
+- [x] Register migration 0005 in `db/migration.rs`
+- [x] Verify migration applies (cargo test — migration tests pass, schema version = 5)
 
 #### Phase C: Repository and Validation
-- [ ] Create `src-tauri/src/repositories/transaction.rs`
-- [ ] Implement `create` with full validation and atomic balance update
-- [ ] Implement `get_by_id`
-- [ ] Implement `update` with balance adjustment (reverses old effect, applies new — handles amount and account changes)
-- [ ] Implement `delete` with balance reversal
-- [ ] Implement `list` with dynamic filtering (account, category, date range, direction, text search, amount range), pagination, deterministic ordering
-- [ ] Implement `create_batch` (import foundation — atomic all-or-nothing bulk insert with same validation as single-create)
-- [ ] Implement `verify_balance` and `rebuild_balance` utilities
-- [ ] Update `repositories/mod.rs`
+- [x] Create `src-tauri/src/repositories/transaction.rs`
+- [x] Implement `create` with full validation and atomic balance update
+- [x] Implement `get_by_id`
+- [x] Implement `update` with balance adjustment (reverses old effect, applies new — handles amount and account changes)
+- [x] Implement `delete` with balance reversal
+- [x] Implement `list` with dynamic filtering (account, category, date range, direction, text search, amount range), pagination, deterministic ordering
+- [x] Implement `create_batch` (import foundation — atomic all-or-nothing bulk insert with same validation as single-create)
+- [x] Implement `verify_balance` and `rebuild_balance` utilities
+- [x] Update `repositories/mod.rs`
 
 #### Phase D: Tauri Commands and TypeScript
-- [ ] Create `src-tauri/src/commands/transaction.rs` (9 commands)
-- [ ] Update `commands/mod.rs` and register commands in `lib.rs`
-- [ ] Add transaction types to `src/types/domain.ts` (no TransactionType — direction derived from amount sign)
-- [ ] Create `src/api/transactions.ts` with typed invoke wrappers
-- [ ] Verify `cargo check` and `npm run build`
+- [x] Create `src-tauri/src/commands/transaction.rs` (9 commands)
+- [x] Update `commands/mod.rs` and register commands in `lib.rs`
+- [x] Add transaction types to `src/types/domain.ts` (no TransactionType — direction derived from amount sign)
+- [x] Create `src/api/transactions.ts` with typed invoke wrappers
+- [x] Verify `cargo check` and `npm run build`
 
 #### Phase E: Testing and Performance
-- [ ] Transaction repository unit tests (~34 tests: CRUD, validation, balance atomicity, search, pagination, batch)
-- [ ] Foreign key and cascade tests (4 tests)
-- [ ] Migration tests (4 tests — including schema absence checks for type/import_session columns)
-- [ ] Performance tests with documented timings and EXPLAIN QUERY PLAN index verification (10k/50k/100k datasets)
-- [ ] All Sprint 2 and Sprint 3 tests continue to pass
+- [x] Transaction repository unit tests (~34 tests: CRUD, validation, balance atomicity, search, pagination, batch)
+- [x] Foreign key and cascade tests (4 tests)
+- [x] Migration tests (4 tests — including schema absence checks for type/import_session columns)
+- [x] Performance tests with documented timings and EXPLAIN QUERY PLAN index verification (10k/50k/100k datasets)
+- [x] All Sprint 2 and Sprint 3 tests continue to pass
 
 #### Phase F: Documentation and Milestone Verification
-- [ ] Update CHANGELOG.md
-- [ ] Update ARCHITECTURE.md (v1.4, "Sprint 4 Complete — Transaction Engine", "Milestone 2 Complete")
-- [ ] Update README.md
-- [ ] Finalize sprint-4 notes (Status → Complete)
-- [ ] Verify all Milestone 2 exit criteria
-- [ ] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check, npm run dev)
+- [x] Update CHANGELOG.md
+- [x] Update ARCHITECTURE.md (v1.4, "Sprint 4 Complete — Transaction Engine", "Milestone 2 Complete")
+- [x] Update README.md
+- [x] Finalize sprint-4 notes (Status → Complete)
+- [x] Verify all Milestone 2 exit criteria
+- [x] Run full verification (cargo test, npm test, npm build, npm lint, npm format:check, npm run dev)
 
 ---
 

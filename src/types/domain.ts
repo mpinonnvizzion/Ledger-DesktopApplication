@@ -81,6 +81,66 @@ export interface UpdateCategoryInput {
   parent_id?: number;
 }
 
+export type TransactionStatus = "uncleared" | "cleared" | "reconciled";
+export type TransactionSource = "manual" | "import" | "plaid";
+export type Direction = "income" | "expense";
+
+export interface Transaction {
+  id: number;
+  workspace_id: number;
+  account_id: number;
+  category_id: number | null;
+  amount_minor: number;
+  description: string;
+  date: string;
+  notes: string | null;
+  status: TransactionStatus;
+  source: TransactionSource;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateTransactionInput {
+  workspace_id: number;
+  account_id: number;
+  category_id?: number;
+  amount_minor: number;
+  description: string;
+  date: string;
+  notes?: string;
+  status?: TransactionStatus;
+  source?: TransactionSource;
+}
+
+export interface UpdateTransactionInput {
+  account_id?: number;
+  category_id?: number | null;
+  amount_minor?: number;
+  description?: string;
+  date?: string;
+  notes?: string | null;
+  status?: TransactionStatus;
+}
+
+export interface TransactionQuery {
+  workspace_id: number;
+  account_id?: number;
+  category_id?: number;
+  date_from?: string;
+  date_to?: string;
+  search?: string;
+  amount_min?: number;
+  amount_max?: number;
+  direction?: Direction;
+  limit?: number;
+  offset?: number;
+}
+
+export interface TransactionListResult {
+  transactions: Transaction[];
+  total_count: number;
+}
+
 export interface TransactionSummary {
   income_minor: number;
   expense_minor: number;

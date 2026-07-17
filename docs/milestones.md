@@ -144,22 +144,22 @@ Build the complete local persistence layer that every finance feature depends on
 
 ### Exit Criteria
 
-- [ ] Ledger can create and open a local SQLite database
-- [ ] Migrations run reliably on first launch and on schema changes
-- [ ] Database service abstraction isolates SQLite from the rest of the backend
-- [ ] Workspaces, accounts, and categories can be created, read, updated, and deleted via Tauri commands
-- [ ] Transactions can be created, read, updated, and deleted via Tauri commands
-- [ ] Transactions can be searched and filtered by date, category, amount, and account
-- [ ] Repository pattern provides a clean boundary between domain logic and storage
-- [ ] Domain entity validation prevents invalid data from reaching the database
-- [ ] Import data path exists for programmatic transaction creation (foundation for CSV import)
-- [ ] Data persists after app restart
-- [ ] Foreign key constraints are enforced and tested
-- [ ] Performance is validated against representative dataset sizes
-- [ ] Database file location is documented
-- [ ] Backup/export design is documented
-- [ ] No dashboard, report, budget, goal, or UI feature code exists
-- [ ] No Plaid, Stripe, licensing, or cloud code exists
+- [x] Ledger can create and open a local SQLite database
+- [x] Migrations run reliably on first launch and on schema changes
+- [x] Database service abstraction isolates SQLite from the rest of the backend
+- [x] Workspaces, accounts, and categories can be created, read, updated, and deleted via Tauri commands
+- [x] Transactions can be created, read, updated, and deleted via Tauri commands
+- [x] Transactions can be searched and filtered by date, category, amount, and account
+- [x] Repository pattern provides a clean boundary between domain logic and storage
+- [x] Domain entity validation prevents invalid data from reaching the database
+- [x] Import data path exists for programmatic transaction creation (foundation for CSV import)
+- [x] Data persists after app restart
+- [x] Foreign key constraints are enforced and tested
+- [x] Performance is validated against representative dataset sizes
+- [x] Database file location is documented
+- [x] Backup/export design is documented
+- [x] No dashboard, report, budget, goal, or UI feature code exists
+- [x] No Plaid, Stripe, licensing, or cloud code exists
 
 ### Dependent Sprints
 

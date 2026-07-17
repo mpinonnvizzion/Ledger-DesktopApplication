@@ -6,7 +6,40 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 4 — 2026-07-16
+
 ### Added
+- **ADR 0009:** Cached account balance with transactional updates
+- **Transaction migration** (`0005_transactions.sql`)
+  - Transaction table with 12 columns, 4 indexes, CHECK constraints
+  - No `transaction_type`, `import_session_id`, or transfer columns
+  - `ON DELETE CASCADE` from accounts, `ON DELETE SET NULL` from categories
+- **Transaction domain model** (`src-tauri/src/models/transaction.rs`)
+  - `Transaction` entity, `TransactionStatus`, `TransactionSource`, `Direction` enums
+  - `CreateTransactionInput`, `UpdateTransactionInput`, `TransactionQuery`, `TransactionListResult` structs
+- **Transaction repository** (`src-tauri/src/repositories/transaction.rs`)
+  - Full CRUD with atomic balance maintenance (ADR 0009)
+  - Search, filter (account, category, date range, direction, amount range, text), sort (date DESC, id DESC)
+  - Bounded pagination (default 50, max 500) with `total_count`
+  - `create_batch` all-or-nothing import foundation
+  - `verify_balance` and `rebuild_balance` utilities
+  - Full validation: workspace/account/category existence, cross-workspace checks, date format, string lengths, zero-amount rejection
+- **Transaction Tauri commands** (9 commands registered)
+  - `create_transaction`, `get_transaction`, `update_transaction`, `delete_transaction`
+  - `list_transactions`, `create_transaction_batch`
+  - `get_account_balance`, `verify_account_balance`, `rebuild_account_balance`
+- **TypeScript transaction API** (`src/api/transactions.ts`, `src/types/domain.ts`)
+  - Typed invoke wrappers for all 9 commands plus existing `getTransactionSummary`
+  - Full domain type definitions: Transaction, TransactionListResult, Direction, etc.
+- **46 new Rust tests** covering CRUD, validation, balance maintenance, batch operations, cascade/FK behavior, migration schema, and performance
+- **Performance validation:**
+  - 10k transactions: 3ms list query (target < 50ms)
+  - 50k transactions: 19ms filtered query (target < 100ms)
+  - 100k transactions: 29ms filtered query (target < 200ms)
+  - All queries use `idx_transactions_workspace_id` index
+- **Milestone 2: Local Data Platform — Complete**
+
+### Changed
 - Sprint 4 implementation plan (`docs/sprint-notes/sprint-4.md`)
   - Transaction engine design: signed-integer amounts (no persisted type column), schema, repository, commands, TypeScript API
   - Balance strategy: cached balance with transactional updates (ADR 0009 required before implementation)

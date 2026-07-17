@@ -44,9 +44,9 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 ## Project Status
 
-**Current Phase:** Sprint 3 — Core Domain Entities (Complete)
+**Current Phase:** Sprint 4 — Transaction Engine (Complete) | Milestone 2: Local Data Platform (Complete)
 
-The core domain model and repository layer are in place: workspaces, accounts, and categories with full CRUD operations via Tauri commands, input validation, foreign key enforcement with cascade behavior, category seed data, and TypeScript API wrappers. Built on the database foundation from Sprint 2 (SQLite, WAL mode, migration system). The application shell from Sprint 1 remains fully functional.
+The complete local data platform is in place. Transactions can be created, read, updated, deleted, searched, and filtered through Tauri commands backed by a repository with validation and atomic balance maintenance. A programmatic import path exists via validated batch-create. Performance validated against 100k transactions (29ms filtered queries). Built on the domain entities from Sprint 3 and database foundation from Sprint 2.
 
 ## Getting Started
 
@@ -81,10 +81,10 @@ src/                  React frontend (TypeScript)
   lib/                Utilities, constants, types
   pages/              Page-level components
 src-tauri/            Rust backend (Tauri 2)
-  src/commands/       Tauri command modules (system, workspace, account, category)
+  src/commands/       Tauri command modules (system, workspace, account, category, transaction)
   src/db/             Database service (connection, migrations)
-  src/models/         Domain entity types (workspace, account, category)
-  src/repositories/   Repository layer (CRUD, validation, data access)
+  src/models/         Domain entity types (workspace, account, category, transaction)
+  src/repositories/   Repository layer (CRUD, validation, data access, balance maintenance)
   migrations/         Embedded SQL migration files
 docs/
   architecture/       Implementation architecture (database, repos, commands, etc.)

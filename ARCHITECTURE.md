@@ -1,7 +1,7 @@
 # Ledger Desktop — Architecture Overview
 
-**Version:** 1.3
-**Status:** Sprint 3 Complete — Core Domain Entities
+**Version:** 1.4
+**Status:** Sprint 4 Complete — Transaction Engine | Milestone 2 Complete
 
 ---
 
