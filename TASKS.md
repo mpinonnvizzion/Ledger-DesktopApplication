@@ -296,8 +296,8 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [x] Accounts list page with balances, loading/empty/error states (Phase B1)
 - [x] Create account dialog with validation (Phase B2)
 - [x] Edit account dialog (name, institution) (Phase B3)
-- [ ] Archive/unarchive toggle (uses existing `is_active` field — non-destructive, reversible)
-- [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative)
+- [x] Archive/restore toggle (uses existing `is_active` field via `updateAccount` — non-destructive, reversible) (Phase B4)
+- [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative) — **deferred, not part of Phase B4**
 
 #### Phase C: Categories UI
 - [ ] Categories page with income/expense sections

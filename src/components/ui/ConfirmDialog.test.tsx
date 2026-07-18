@@ -97,6 +97,33 @@ describe("ConfirmDialog", () => {
     expect(cancelBtn).toBeDisabled();
   });
 
+  it("shows a sanitized error inside the dialog when provided", () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        onClose={() => {}}
+        onConfirm={() => {}}
+        title="Confirm"
+        message="Proceed?"
+        error="Something went wrong."
+      />,
+    );
+    expect(screen.getByText("Something went wrong.")).toBeInTheDocument();
+  });
+
+  it("does not render an error box when no error is provided", () => {
+    render(
+      <ConfirmDialog
+        open={true}
+        onClose={() => {}}
+        onConfirm={() => {}}
+        title="Confirm"
+        message="Proceed?"
+      />,
+    );
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("calls onClose via Escape when open", () => {
     const onClose = vi.fn();
     render(

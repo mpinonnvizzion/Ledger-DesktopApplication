@@ -1,6 +1,6 @@
 # Sprint 5: Personal Finance UI — Implementation Plan
 
-**Status:** In Progress — Phase B3 (edit-account workflow) Complete
+**Status:** In Progress — Phase B4 (archive-and-restore lifecycle) Complete
 **Date:** 2026-07-17
 
 ---
@@ -304,11 +304,11 @@ Category deletion behavior depends on the category type:
    - On submit: call `updateAccount(...)`, refetch list
    - Close on success or cancel
 
-7. **Archive/Unarchive**
+7. **Archive/Restore**
    - Toggle via `updateAccount(id, undefined, undefined, !isActive)`
-   - Inactive accounts shown dimmed or in a separate "Archived" section
-   - Inactive accounts still visible but clearly marked
-   - No confirmation needed for archive (non-destructive, reversible)
+   - Inactive accounts shown dimmed, marked "Archived", with a Restore action
+   - Archive **requires explicit confirmation** (superseded during Phase B4 implementation — the original "No confirmation needed for archive" note below was overridden by the Phase B4 task's explicit requirement that archive, unlike restore, requires a confirmation dialog naming the account, since it removes the account from active use even though it remains non-destructive and reversible)
+   - Restore requires no confirmation (reversible, non-destructive, immediate)
 
 8. **Delete Account**
    - Confirmation dialog with explicit cascade warning:
@@ -375,6 +375,30 @@ Edit Account workflow (item 6) implemented. Items 7–8 (archive/unarchive, dele
 **Dialog defect found and fixed (in the shared `Dialog` component, not this feature's own component):** `Dialog.tsx` hardcoded `id="dialog-title"` on its heading and referenced it via a matching hardcoded `aria-labelledby`. This was invisible while only one `Dialog` instance ever existed on a page (Sprint 5 Phase A/B1/B2). With the Edit dialog added, the Accounts page now always mounts two `Dialog` instances at once (Create and Edit, each individually toggling its own `open` prop, matching the existing B2 pattern) — producing two elements with the same `id` and an ambiguous `aria-labelledby` target, an invalid-HTML and real accessibility defect once two dialogs coexist. Fixed by generating the title id via `useId()` per `Dialog` instance. This also incidentally surfaced that this project's jsdom/Testing Library test environment does not treat a closed (no `open` attribute) native `<dialog>`'s contents as excluded from text/label queries (even though real Chromium hides them via `display: none`), so several page-level tests needed their queries scoped to the specific open dialog (via `within(screen.getByRole("dialog", { name: ... }))`) to avoid matching the other, closed dialog's identically-labeled fields. One pre-existing Phase B2 test (`displays human-readable account types and formatted balances`) was already coincidentally relying on this same ambiguity resolving in its favor due to assertion timing; it was fixed to scope its query to the table row rather than weakened.
 
 **Verification:** `npm run test` (92/92 passing, 21 new), `npm run lint`, `npm run format:check`, `npm run build`, `cargo check`, `cargo test` (104/104 passing, unchanged — confirms no backend code was touched) all pass. `npm run dev` (`tauri dev`) compiles and launches the desktop binary cleanly with no runtime errors in the log. As with Phase B2, interactive manual verification (clicking through the edit-account flow in the native window, confirming persistence across restart) was **not** performed — no tooling is available to drive a native Tauri/WebView window. This is a known, recurring verification gap; see the Phase B3 review report for details.
+
+#### Phase B4 Implementation Notes (2026-07-17)
+
+Archive/Unarchive lifecycle (item 7) implemented as **Archive and Restore**. Item 8 (Delete Account with cascade warning) is **not** implemented in this phase and remains deferred — no Delete action, confirmation, or cascade-count logic exists anywhere in the UI yet.
+
+**Files modified:**
+- `src/pages/Accounts.tsx` — Archive/Restore row actions (conditionally rendered based on `is_active`), archive confirmation state, restore per-account in-flight state, page-level restore error display
+- `src/pages/Accounts.test.tsx` — 24 new tests: action visibility, archive confirmation flow, restore flow, ordering transitions, summary-count updates
+- `src/components/ui/ConfirmDialog.tsx` — added an optional `error?: string` prop (see below)
+- `src/components/ui/ConfirmDialog.test.tsx` — 2 new tests for the error prop
+
+**Backend Change Rule check:** No backend gap encountered, and this was the expected outcome per this plan's own Domain Behavior Reference (see "Account Archive (is_active)" above): `UpdateAccountInput` already accepts `is_active: Option<bool>`, `update_account` already passes it through, and the TS `updateAccount` wrapper already accepts `isActive?: boolean`. No dedicated archive/restore commands were created — both actions call the existing `updateAccount(id, undefined, undefined, isActive)`, passing `undefined` for name and institution so the repository's preserve-on-omit merge semantics (discovered in Phase B3) leave those fields untouched. `list_accounts_by_workspace` has no `is_active` filter, so archived accounts continue to be returned and rendered (dimmed, badge-marked) exactly as B1 already implemented.
+
+**Archive confirmation:** Uses the shared `ConfirmDialog` with title "Archive account?", confirm label "Archive Account", and message copy naming the account and explicitly stating history is preserved and the account is restorable — no alarmist/destructive language. `ConfirmDialog`'s existing `loading` prop already disabled both buttons and set `autoFocus` on Cancel, satisfying "cancel is the safe default" and "cannot be submitted twice" without new focus code. A defensive in-handler guard (`if (archiving || !archiveTarget) return`) backs this up.
+
+**`ConfirmDialog` extended (not a defect, a genuine missing capability needed here):** Before this phase, `ConfirmDialog` had zero real consumers, so there was no way to surface a failed-confirm error inside the dialog (a hard requirement: "API errors appear inside the confirmation dialog," "failed archive leaves the dialog open"). Added an optional `error?: string` prop rendering the existing shared `ErrorMessage` component beneath the message text. This is additive and backward compatible — no existing usage or test needed to change.
+
+**Restore behavior:** Executes directly on click, no confirmation, per the plan. In-flight state is tracked as `restoringIds: Set<number>` (not a single id), specifically so that restoring one archived account never disables another account's Restore button — satisfying "do not disable unrelated rows." Restore failures show a sanitized page-level `ErrorMessage` above the table (not `PageErrorState`, which would replace the whole page) and clear on the next restore attempt or success.
+
+**Mutation-state design:** Five explicit `useState` values on the `Accounts` page (`archiveTarget`, `archiving`, `archiveError`, `restoringIds`, `restoreError`) — no generic mutation abstraction, no global state, no new dependencies, matching every other B1–B3 mutation (create, edit) already on this page.
+
+**Refresh and ordering:** Both actions call the existing `retryToken` refetch mechanism (no manual row mutation) — canonical backend data always wins. The existing B1 `sortAccounts` (active-first, then alphabetical) is untouched and correctly moves an archived account into the archived group, or a restored account back into the active group, purely as a side effect of the refetched `is_active` value — no ordering logic changes were needed.
+
+**Verification:** `npm run test` (111/111 passing, 19 new in `Accounts.test.tsx` archive/restore suites + 5 more across visibility/no-delete tests + 2 in `ConfirmDialog.test.tsx`), `npm run lint`, `npm run format:check`, `npm run build`, `cargo check`, `cargo test` (104/104 passing, unchanged — confirms no backend code was touched) all pass. `npm run dev` (`tauri dev`) compiles and launches the desktop binary cleanly with no runtime errors in the log. As with Phase B2/B3, interactive manual verification (clicking through archive/restore in the native window, confirming state survives a restart) was **not** performed — no tooling is available to drive a native Tauri/WebView window. This is a known, recurring verification gap; see the Phase B4 review report for details.
 
 ---
 
@@ -571,10 +595,10 @@ Sprint 5 is complete when all of the following are true:
 3. User can create an account with name, type, and institution
 4. User can view all accounts with their current balances (formatted as currency)
 5. User can edit an account name and institution
-6. User can archive an account (set `is_active = false`) — non-destructive, reversible
-7. User can unarchive an account (set `is_active = true`)
-8. User can delete an account with explicit cascade warning showing transaction count
-9. Account deletion confirmation offers "Archive Instead" as an alternative
+6. User can archive an account (set `is_active = false`) — non-destructive, reversible — **complete (Phase B4)**
+7. User can unarchive (restore) an account (set `is_active = true`) — **complete (Phase B4)**
+8. User can delete an account with explicit cascade warning showing transaction count — **not implemented; deferred beyond Phase B4**
+9. Account deletion confirmation offers "Archive Instead" as an alternative — **not implemented; deferred beyond Phase B4**
 10. User can view categories grouped by income and expense type
 11. User can create a new category (income or expense)
 12. User can edit a user-created category name

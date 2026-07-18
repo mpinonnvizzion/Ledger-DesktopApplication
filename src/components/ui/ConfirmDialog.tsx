@@ -1,5 +1,6 @@
 import { Dialog } from "./Dialog";
 import { Button } from "./Button";
+import { ErrorMessage } from "./ErrorMessage";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -12,6 +13,8 @@ interface ConfirmDialogProps {
   /** Use danger variant for destructive actions */
   destructive?: boolean;
   loading?: boolean;
+  /** Sanitized error from a failed confirm attempt, shown inside the dialog */
+  error?: string;
 }
 
 export function ConfirmDialog({
@@ -24,6 +27,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   destructive = false,
   loading = false,
+  error,
 }: ConfirmDialogProps) {
   return (
     <Dialog
@@ -34,6 +38,11 @@ export function ConfirmDialog({
       preventClose={loading}
     >
       <p className="text-sm text-gray-700">{message}</p>
+      {error && (
+        <div className="mt-3">
+          <ErrorMessage message={error} />
+        </div>
+      )}
       <div className="mt-6 flex justify-end gap-3">
         {/* autoFocus ensures initial focus lands on the safe Cancel action */}
         <Button

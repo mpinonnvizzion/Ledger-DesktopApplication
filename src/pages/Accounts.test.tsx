@@ -393,6 +393,52 @@ describe("Accounts — Actions column", () => {
       screen.getByRole("button", { name: "Edit Savings" }),
     ).toBeInTheDocument();
   });
+
+  it("renders Archive (not Restore) for an active account", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByRole("button", { name: "Archive Everyday" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Restore Everyday" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("renders Restore (not Archive) for an archived account", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Old Savings", is_active: false }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Archive Old Savings" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("never renders a Delete action", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+      makeAccount({ id: 2, name: "Old Savings", is_active: false }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.queryByRole("button", { name: /delete/i }),
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe("Accounts — edit-account workflow", () => {
@@ -533,5 +579,416 @@ describe("Accounts — edit-account workflow", () => {
     expect(
       within(editDialog()).getByLabelText("Institution (optional)"),
     ).toHaveValue("Bank B");
+  });
+});
+
+describe("Accounts — archive workflow", () => {
+  function archiveDialog() {
+    return screen.getByRole("dialog", { name: "Archive account?" });
+  }
+
+  it("opens a confirmation dialog naming the account when Archive is clicked", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Archive account?" }),
+    ).toBeInTheDocument();
+    expect(within(archiveDialog()).getByText(/Everyday/)).toBeInTheDocument();
+    expect(
+      within(archiveDialog()).getByRole("button", { name: "Archive Account" }),
+    ).toBeInTheDocument();
+  });
+
+  it("closes without calling updateAccount when Cancel is clicked", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Cancel" }),
+    );
+
+    expect(
+      screen.queryByRole("heading", { name: "Archive account?" }),
+    ).not.toBeInTheDocument();
+    expect(mockUpdateAccount).not.toHaveBeenCalled();
+  });
+
+  it("confirms with the selected account's id and archives (is_active=false) without touching other fields", async () => {
+    const account = makeAccount({ id: 7, name: "Everyday", is_active: true });
+    mockListAccountsByWorkspace.mockResolvedValue([account]);
+    mockUpdateAccount.mockResolvedValue({ ...account, is_active: false });
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Archive Account" }),
+    );
+
+    await waitFor(() =>
+      expect(mockUpdateAccount).toHaveBeenCalledWith(
+        7,
+        undefined,
+        undefined,
+        false,
+      ),
+    );
+  });
+
+  it("prevents duplicate archive submissions while a request is in flight", async () => {
+    let resolveUpdate: (account: Account) => void = () => {};
+    mockUpdateAccount.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+    const confirmButton = within(archiveDialog()).getByRole("button", {
+      name: "Archive Account",
+    });
+    fireEvent.click(confirmButton);
+    fireEvent.click(confirmButton);
+    fireEvent.click(confirmButton);
+
+    expect(mockUpdateAccount).toHaveBeenCalledTimes(1);
+
+    resolveUpdate(makeAccount({ id: 1, is_active: false }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Archive account?" }),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("keeps the confirmation open, preserves the account, and shows a sanitized error on failure", async () => {
+    mockUpdateAccount.mockRejectedValue(
+      '{"code":"database_error","message":"A database error occurred. Please try again."}',
+    );
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Everyday", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Archive Account" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        within(archiveDialog()).getByText(
+          "A database error occurred. Please try again.",
+        ),
+      ).toBeInTheDocument(),
+    );
+    // Dialog remains open with the same account still targeted
+    expect(
+      screen.getByRole("heading", { name: "Archive account?" }),
+    ).toBeInTheDocument();
+    expect(within(archiveDialog()).getByText(/Everyday/)).toBeInTheDocument();
+    // No raw backend details leaked
+    expect(screen.queryByText(/sqlite/i)).not.toBeInTheDocument();
+  });
+
+  it("clears a stale error when opening the confirmation for a different account", async () => {
+    mockUpdateAccount.mockRejectedValue(
+      '{"code":"validation_error","message":"Something went wrong."}',
+    );
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Account A", is_active: true }),
+      makeAccount({ id: 2, name: "Account B", is_active: true }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Archive Account A" }));
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Archive Account" }),
+    );
+    await waitFor(() =>
+      expect(
+        within(archiveDialog()).getByText("Something went wrong."),
+      ).toBeInTheDocument(),
+    );
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Cancel" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Archive Account B" }));
+
+    expect(screen.queryByText("Something went wrong.")).not.toBeInTheDocument();
+  });
+
+  it("successful archive closes the dialog, refetches, moves the account into the archived group, and updates summary counts", async () => {
+    const active = makeAccount({ id: 1, name: "Everyday", is_active: true });
+    const archived = { ...active, is_active: false };
+    mockListAccountsByWorkspace
+      .mockResolvedValueOnce([active])
+      .mockResolvedValueOnce([archived]);
+    mockUpdateAccount.mockResolvedValue(archived);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByText("Active Accounts").closest("div"),
+    ).toHaveTextContent("1");
+    expect(
+      screen.getByText("Archived Accounts").closest("div"),
+    ).toHaveTextContent("0");
+
+    fireEvent.click(screen.getByRole("button", { name: "Archive Everyday" }));
+    fireEvent.click(
+      within(archiveDialog()).getByRole("button", { name: "Archive Account" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("heading", { name: "Archive account?" }),
+      ).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() => {
+      const row = screen.getAllByRole("row")[1];
+      expect(within(row).getByText("Archived")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("button", { name: "Restore Everyday" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Active Accounts").closest("div"),
+    ).toHaveTextContent("0");
+    expect(
+      screen.getByText("Archived Accounts").closest("div"),
+    ).toHaveTextContent("1");
+  });
+});
+
+describe("Accounts — restore workflow", () => {
+  it("does not open a confirmation dialog", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Old Savings", is_active: false }),
+    ]);
+    mockUpdateAccount.mockResolvedValue(
+      makeAccount({ id: 1, name: "Old Savings", is_active: true }),
+    );
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(mockUpdateAccount).toHaveBeenCalled());
+  });
+
+  it("calls updateAccount with the selected account's id and restores (is_active=true)", async () => {
+    const account = makeAccount({
+      id: 9,
+      name: "Old Savings",
+      is_active: false,
+    });
+    mockListAccountsByWorkspace.mockResolvedValue([account]);
+    mockUpdateAccount.mockResolvedValue({ ...account, is_active: true });
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+
+    await waitFor(() =>
+      expect(mockUpdateAccount).toHaveBeenCalledWith(
+        9,
+        undefined,
+        undefined,
+        true,
+      ),
+    );
+  });
+
+  it("prevents duplicate restore submissions for the same account while a request is in flight", async () => {
+    let resolveUpdate: (account: Account) => void = () => {};
+    mockUpdateAccount.mockReturnValue(
+      new Promise((resolve) => {
+        resolveUpdate = resolve;
+      }),
+    );
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Old Savings", is_active: false }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    const restoreButton = screen.getByRole("button", {
+      name: "Restore Old Savings",
+    });
+    fireEvent.click(restoreButton);
+    fireEvent.click(restoreButton);
+    fireEvent.click(restoreButton);
+
+    expect(mockUpdateAccount).toHaveBeenCalledTimes(1);
+    expect(restoreButton).toBeDisabled();
+
+    resolveUpdate(makeAccount({ id: 1, is_active: true }));
+    await waitFor(() =>
+      expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2),
+    );
+  });
+
+  it("does not disable unrelated rows' Restore actions while one restore is in flight", async () => {
+    mockUpdateAccount.mockReturnValue(new Promise(() => {}));
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Account A", is_active: false }),
+      makeAccount({ id: 2, name: "Account B", is_active: false }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "Restore Account A" }));
+
+    expect(
+      screen.getByRole("button", { name: "Restore Account A" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Restore Account B" }),
+    ).not.toBeDisabled();
+  });
+
+  it("shows a sanitized error and leaves the account archived on failure", async () => {
+    mockUpdateAccount.mockRejectedValue(
+      '{"code":"database_error","message":"A database error occurred. Please try again."}',
+    );
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Old Savings", is_active: false }),
+    ]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("A database error occurred. Please try again."),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.queryByText(/sqlite/i)).not.toBeInTheDocument();
+    // Account remains archived and the Restore action is available again
+    const row = screen.getAllByRole("row")[1];
+    expect(within(row).getByText("Archived")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    ).not.toBeDisabled();
+  });
+
+  it("clears a stale restore error on a later successful restore", async () => {
+    const account = makeAccount({
+      id: 1,
+      name: "Old Savings",
+      is_active: false,
+    });
+    mockUpdateAccount
+      .mockRejectedValueOnce(
+        '{"code":"validation_error","message":"Something went wrong."}',
+      )
+      .mockResolvedValueOnce({ ...account, is_active: true });
+    mockListAccountsByWorkspace.mockResolvedValue([account]);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Something went wrong.")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText("Something went wrong."),
+      ).not.toBeInTheDocument(),
+    );
+  });
+
+  it("successful restore refetches, moves the account into the active group, and updates summary counts", async () => {
+    const archived = makeAccount({
+      id: 1,
+      name: "Old Savings",
+      is_active: false,
+    });
+    const restored = { ...archived, is_active: true };
+    mockListAccountsByWorkspace
+      .mockResolvedValueOnce([archived])
+      .mockResolvedValueOnce([restored]);
+    mockUpdateAccount.mockResolvedValue(restored);
+
+    render(<Accounts />);
+
+    await waitFor(() => expect(screen.getByRole("table")).toBeInTheDocument());
+    expect(
+      screen.getByText("Active Accounts").closest("div"),
+    ).toHaveTextContent("0");
+    expect(
+      screen.getByText("Archived Accounts").closest("div"),
+    ).toHaveTextContent("1");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Restore Old Savings" }),
+    );
+
+    await waitFor(() =>
+      expect(mockListAccountsByWorkspace).toHaveBeenCalledTimes(2),
+    );
+    await waitFor(() => {
+      const row = screen.getAllByRole("row")[1];
+      expect(within(row).getByText("Active")).toBeInTheDocument();
+    });
+    expect(
+      screen.getByRole("button", { name: "Archive Old Savings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Active Accounts").closest("div"),
+    ).toHaveTextContent("1");
+    expect(
+      screen.getByText("Archived Accounts").closest("div"),
+    ).toHaveTextContent("0");
   });
 });

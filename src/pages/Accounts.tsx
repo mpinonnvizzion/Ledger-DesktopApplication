@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "@/hooks/useWorkspace";
-import { listAccountsByWorkspace } from "@/api/accounts";
+import { listAccountsByWorkspace, updateAccount } from "@/api/accounts";
 import type { Account } from "@/types/domain";
 import { formatAmount } from "@/lib/format";
 import { parseCommandError } from "@/lib/errors";
 import { formatAccountType } from "@/lib/accountTypes";
 import { PageLoadingState } from "@/components/ui/LoadingSpinner";
-import { PageErrorState } from "@/components/ui/ErrorMessage";
+import { ErrorMessage, PageErrorState } from "@/components/ui/ErrorMessage";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { CreateAccountDialog } from "@/components/accounts/CreateAccountDialog";
 import { EditAccountDialog } from "@/components/accounts/EditAccountDialog";
 
@@ -34,6 +35,11 @@ export default function Accounts() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<Account | null>(null);
+  const [archiving, setArchiving] = useState(false);
+  const [archiveError, setArchiveError] = useState<string | null>(null);
+  const [restoringIds, setRestoringIds] = useState<Set<number>>(new Set());
+  const [restoreError, setRestoreError] = useState<string | null>(null);
 
   useEffect(() => {
     if (currentWorkspaceId === null) {
@@ -100,6 +106,58 @@ export default function Accounts() {
     setRetryToken((token) => token + 1);
   }
 
+  function handleArchiveClick(account: Account) {
+    setArchiveTarget(account);
+    setArchiveError(null);
+  }
+
+  function handleArchiveCancel() {
+    if (archiving) return;
+    setArchiveTarget(null);
+    setArchiveError(null);
+  }
+
+  function handleArchiveConfirm() {
+    if (archiving || !archiveTarget) return;
+
+    setArchiveError(null);
+    setArchiving(true);
+
+    updateAccount(archiveTarget.id, undefined, undefined, false)
+      .then(() => {
+        setArchiveTarget(null);
+        setRetryToken((token) => token + 1);
+      })
+      .catch((err: unknown) => {
+        setArchiveError(parseCommandError(err).message);
+      })
+      .finally(() => {
+        setArchiving(false);
+      });
+  }
+
+  function handleRestoreClick(account: Account) {
+    if (restoringIds.has(account.id)) return;
+
+    setRestoreError(null);
+    setRestoringIds((ids) => new Set(ids).add(account.id));
+
+    updateAccount(account.id, undefined, undefined, true)
+      .then(() => {
+        setRetryToken((token) => token + 1);
+      })
+      .catch((err: unknown) => {
+        setRestoreError(parseCommandError(err).message);
+      })
+      .finally(() => {
+        setRestoringIds((ids) => {
+          const next = new Set(ids);
+          next.delete(account.id);
+          return next;
+        });
+      });
+  }
+
   // Only the initial fetch (no accounts rendered yet) shows the full-page
   // spinner; a post-create refresh must not replace an already-visible table.
   const showFullPageLoading = loading && accounts.length === 0;
@@ -131,6 +189,10 @@ export default function Accounts() {
             onClick: () => setShowCreateDialog(true),
           }}
         />
+      )}
+
+      {!showFullPageLoading && !error && restoreError && (
+        <ErrorMessage message={restoreError} />
       )}
 
       {!showFullPageLoading && !error && sortedAccounts.length > 0 && (
@@ -238,15 +300,39 @@ export default function Accounts() {
                         )}
                       </td>
                       <td className="px-4 py-3 text-right text-sm">
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleEditClick(account)}
-                          aria-label={`Edit ${account.name}`}
-                        >
-                          Edit
-                        </Button>
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleEditClick(account)}
+                            aria-label={`Edit ${account.name}`}
+                          >
+                            Edit
+                          </Button>
+                          {account.is_active ? (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleArchiveClick(account)}
+                              aria-label={`Archive ${account.name}`}
+                            >
+                              Archive
+                            </Button>
+                          ) : (
+                            <Button
+                              type="button"
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleRestoreClick(account)}
+                              loading={restoringIds.has(account.id)}
+                              aria-label={`Restore ${account.name}`}
+                            >
+                              Restore
+                            </Button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -274,6 +360,18 @@ export default function Accounts() {
           onUpdated={handleAccountUpdated}
         />
       )}
+
+      <ConfirmDialog
+        open={archiveTarget !== null}
+        onClose={handleArchiveCancel}
+        onConfirm={handleArchiveConfirm}
+        title="Archive account?"
+        message={`Archive "${archiveTarget?.name ?? ""}"? The account and its history will remain in Ledger, and you can restore it at any time.`}
+        confirmLabel="Archive Account"
+        cancelLabel="Cancel"
+        loading={archiving}
+        error={archiveError ?? undefined}
+      />
     </div>
   );
 }

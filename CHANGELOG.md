@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 5 Phase B4 — 2026-07-17
+
+### Added
+- **Archive and Restore account lifecycle** (`src/pages/Accounts.tsx`)
+  - Active account rows show Edit and Archive actions; archived account rows show Edit and Restore actions. No account ever shows both, and no Delete action exists anywhere yet.
+  - Archive requires confirmation via the shared `ConfirmDialog` ("Archive account?" / "Archive Account"), naming the account in the confirmation copy. Cancel is the default-focused, safe action and makes no changes.
+  - Restore executes directly from its row action — no confirmation dialog, since it is reversible and non-destructive.
+  - Both actions use the existing `updateAccount(id, undefined, undefined, isActive)` contract — no new backend commands. Name and institution are left untouched (`undefined` preserves them, per the merge semantics discovered in Phase B3).
+  - On success: the confirmation (for archive) closes, the account list refetches, the row's status and the Active/Archived summary counts update immediately, and the account moves into the correct ordering group (active-first, alphabetical) — no full-page reload or loading-spinner flash.
+  - Duplicate submission is prevented for both actions; Restore tracks in-flight state per account id, so restoring one archived account never disables another's Restore button.
+  - Failures are shown as sanitized errors — inside the confirmation dialog for archive (leaving the account active and the dialog open), and as a page-level message for restore (leaving the account archived and its Restore action available again).
+  - 24 new frontend tests covering action visibility, the archive confirmation flow, the restore flow, ordering transitions, and summary-count updates (111 total, up from 92 after Phase B3).
+
+### Changed
+- **`ConfirmDialog` component** (`src/components/ui/ConfirmDialog.tsx`) — added an optional `error?: string` prop that renders a sanitized `ErrorMessage` inside the dialog body. This was the component's first real consumer; existing usages and tests are unaffected since the prop is optional.
+
+### Notes
+- No dedicated archive/restore Tauri commands exist, and none were added — both actions reuse `update_account` / `UpdateAccountInput.is_active`, exactly as the plan's Domain Behavior Reference already documented. `list_accounts_by_workspace` returns archived accounts unfiltered, which the existing client-side sort/badge logic already relies on.
+- **Permanent deletion is explicitly not implemented in this phase** — no Delete action, confirmation, or cascade-warning logic exists anywhere in the UI. It remains deferred.
+
 ## Sprint 5 Phase B3 — 2026-07-17
 
 ### Added
