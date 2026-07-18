@@ -1,7 +1,79 @@
 # Sprint 5: Personal Finance UI — Implementation Plan
 
-**Status:** In Progress — Phase B4 (archive-and-restore lifecycle) Complete
-**Date:** 2026-07-17
+**Status:** Complete — Accounts UI (Phases A–B, minus permanent deletion)
+**Date:** 2026-07-17 (closed 2026-07-18)
+
+---
+
+## Sprint 5 Closeout (2026-07-18)
+
+This section is the authoritative record of what Sprint 5 actually delivered. It supersedes the scope described in the rest of this document (which originally planned Categories UI, Transactions UI, and a Dashboard as further phases of "Sprint 5" — see "Scope Change" below). The remaining sections of this file (Objective, Scope, Implementation Phases, Acceptance Criteria, etc.) are retained as the historical planning record and per-phase implementation notes, and are not rewritten.
+
+### Objective (as delivered)
+
+A user can manage the complete reversible lifecycle of locally stored financial accounts through the desktop UI: select or create a workspace, view all accounts with live balances, create new accounts, edit an account's name and institution, and archive or restore an account — all backed by local SQLite persistence that survives application restart, with no network dependency.
+
+### Completed Scope
+
+- **Workspace selection and initialization** — `WorkspaceContext` fetches workspaces on launch, prompts first-launch creation via `FirstWorkspaceSetup`, persists the active selection to `localStorage`, and seeds default categories on first workspace creation.
+- **Account list** (`src/pages/Accounts.tsx`) — fetches via `listAccountsByWorkspace`, renders a semantic table (Account, Type, Balance, Status, Actions columns), sorted active-first then alphabetically within each group (client-side, since the backend does not guarantee ordering).
+- **Account summaries** — three summary cards: Total Balance (active accounts only), Active Accounts count, Archived Accounts count, all derived reactively from the fetched account list.
+- **Account creation** (`CreateAccountDialog`) — name (required), account type (required select), institution (optional); validates and trims client-side; refetches and closes on success.
+- **Account editing** (`EditAccountDialog`) — name and institution are editable; account type is displayed read-only (see notes below); reopening for a different account never leaks stale form state.
+- **Account archiving** — requires explicit confirmation via `ConfirmDialog`, naming the account and stating the action is reversible; non-destructive.
+- **Account restoration** — executes directly with no confirmation (reversible, immediate); per-account in-flight tracking so restoring one account never disables another's control.
+- **Persistence** — all mutations go through Rust/SQLite via typed Tauri commands; the frontend never touches SQLite directly; data survives application restart (verified by existing Rust integration tests; interactive restart verification could not be performed manually — see Lessons Learned).
+- **Validation** — client-side validation mirrors backend rules (required/non-whitespace name, required type) without duplicating backend-only constraints (e.g., max length); backend validation remains authoritative.
+- **Sanitized error handling** — all API failures are parsed via `parseCommandError` and displayed as plain-language messages; no Rust, SQLite, or Tauri internals are ever exposed to the user (verified by explicit tests in every mutation flow).
+- **Accessibility** — every row action has an explicit accessible name (`aria-label`), dialogs have accessible titles and labeled fields, destructive-adjacent confirmation defaults focus to the safe Cancel action, loading/disabled state uses real semantics (not color alone), and focus returns to the triggering control after a dialog closes (via the native `<dialog>` element's built-in behavior).
+- **Test coverage** — 111 frontend tests (Vitest + Testing Library) and 104 Rust tests (unchanged since Sprint 4 — no backend code was added during Sprint 5), covering every mutation's success, failure, and duplicate-submission-prevention paths, plus ordering, summary-count, and cross-account state-isolation behavior.
+
+### Explicit Notes
+
+- **Account deletion was not implemented.** No Delete action, confirmation dialog, or cascade-warning logic exists anywhere in the UI. This was verified by a dedicated test asserting no Delete action ever renders. It remains deferred to a future phase (see "What Sprint 5 Does Not Include" below).
+- **New accounts currently begin with a zero balance** because `CreateAccountInput` (Rust and TypeScript) has no `balance` field — the repository sets `balance = 0` unconditionally on insert. The create form has no opening-balance field as a result; this was a discovery from inspecting the backend contract, not a UI omission.
+- **Account type is not editable** because `UpdateAccountInput` (Rust and TypeScript) has no `account_type` field — only `name`, `institution_name`, and `is_active` can be changed after creation. The edit dialog displays the account type read-only, with a caption explaining it cannot be changed, rather than exposing an editable control that would silently no-op.
+- **Institution clearing uses the existing explicit update contract.** The account update repository treats an omitted field as "preserve the existing value," not "clear it" (unlike create). The edit dialog therefore always sends the trimmed institution value as an explicit string (including `""` when cleared), never `undefined`, so clearing the field actually clears it.
+- **Archived accounts remain visible** in the table (dimmed, badge-marked "Archived") rather than hidden — `list_accounts_by_workspace` returns them unfiltered, and no hide-archived toggle exists yet.
+- **Account row actions remain explicit text actions** (Edit / Archive / Restore) rather than an icon-only or overflow ("⋯") menu, at the current product scale of three possible actions per row.
+- **No generic account-form or table abstraction was introduced prematurely.** `CreateAccountDialog` and `EditAccountDialog` are separate, small, colocated components with genuinely different field sets and validation rules (see notes above) rather than a shared `AccountForm`; the accounts table is plain semantic HTML rather than a generic `Table` component (see "Documentation Conflicts" below — a `Table.tsx` primitive was never actually built, despite being listed in the Phase A notes).
+
+### Out of Scope (confirmed)
+
+Sprint 5 did **not** include: permanent account deletion, transaction UI, balance adjustments, reconciliation, imports, Plaid, budgets, reports, goals, or dashboard financial metrics. No code for any of these exists in the current tree.
+
+### Review Notes (product review conclusions)
+
+- The Accounts page looks appropriate for commercial desktop finance software — calm, compact, and information-dense without feeling cluttered.
+- Current spacing and density are acceptable as-is.
+- Summary cards are useful and should remain in their current form.
+- Explicit row actions (not an overflow menu) are preferred at the current product scale (up to three actions per row).
+- No Create/Edit dialog abstraction is warranted yet — the two dialogs' field sets have already diverged (account type is create-only) in a way that would make a shared abstraction more complex than the duplication it would remove.
+- No blocking technical debt was identified.
+- No additional polish phase is required before Sprint 6.
+
+### Lessons Learned
+
+- **Small implementation phases produced cleaner review checkpoints.** Splitting Accounts UI into B1 (read-only list), B2 (create), B3 (edit), and B4 (archive/restore) — each independently committed and verified — kept each review focused on one workflow's correctness rather than a large, hard-to-audit diff.
+- **Manual native-app verification remains necessary because Claude cannot interact with the Tauri window.** Every phase's automated verification (tests, lint, build, `cargo check`/`test`, and a clean `tauri dev` launch-and-log check) was completed, but interactive click-through verification and restart-persistence checks in the actual native window were not performed in any phase — no tooling exists in this environment to drive a native Tauri/WebView window, unlike the Chrome-only browser automation tools available for web targets. This is a standing, recurring gap across every phase's review report and should be planned for explicitly (a human manual pass) before any phase is considered fully done in practice.
+- **Repository-cleanliness checks (verifying branch, commit, and clean working tree before starting) prevented unrelated work from entering later commits.** Every phase began with `git status`/`git log` verification per the operating instructions, which caught the correct starting state each time and kept each commit scoped to exactly one phase's changes.
+- **Backend contracts must be inspected before designing forms.** Phase B3 discovered that `UpdateAccountInput` has no `account_type` field and that the update repository's merge semantics differ from create's (omission preserves rather than clears). Both would have produced a broken or silently-wrong UI if the form had been designed from the plan's speculative field list instead of the actual Rust/TypeScript contract.
+- **Shared-component accessibility defects should be fixed only when concrete use cases reveal them.** The `Dialog` component's hardcoded title `id` was invisible for three phases (only one dialog ever existed on the page at a time) and only became a real, concrete defect in Phase B3 when a second simultaneous dialog instance was introduced. It was fixed at that point — not speculatively hardened in Phase A against a scenario that didn't yet exist.
+
+### Scope Change and Documentation Conflict — Flagged for Product Decision
+
+This document, as originally written, planned "Sprint 5: Personal Finance UI" to include Categories UI (Phase C), Transactions UI (Phase D), a Dashboard (Phase E), and a cross-cutting polish phase (Phase F) — see those sections below, which were never implemented. In practice, only Phase A (Foundation) and Phase B (Accounts UI, minus deletion) were built across four independently reviewed and committed sub-phases (B1–B4). This closeout formally narrows "Sprint 5, as delivered" to that actual scope.
+
+This creates an unresolved conflict with `docs/milestones.md` (v2.1), which is the authoritative roadmap document and which still defines:
+- **Sprint 5: Personal Finance UI** — Accounts + Categories + Transactions + Dashboard (the original, broader scope)
+- **Sprint 6: Budgets, Goals, and Reports**
+- **Sprint 7: Security, Onboarding, and Business Finance**
+
+`TASKS.md`'s Milestone 3 breakdown mirrors this same structure.
+
+Per explicit direction for this closeout, Transactions UI planning continues in a new document, `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI." **This directly conflicts with `docs/milestones.md`'s existing definition of Sprint 6 as "Budgets, Goals, and Reports."** Categories UI and a Dashboard (originally Sprint 5 Phases C and E) are not addressed by `sprint-6.md` either, and remain unscheduled.
+
+This conflict is deliberately **not resolved by editing `docs/milestones.md` or renumbering later sprints** as part of this closeout — doing so would mean inventing product direction (deciding where Budgets/Goals/Reports and Security/Onboarding/Business Finance now fall in the sequence) beyond what was asked. That is a product-owner decision. Until it is made, `docs/milestones.md` remains the authoritative sprint numbering, and `docs/sprint-notes/sprint-6.md` should be read as a proposed plan for "the next chunk of work after Sprint 5's actual scope" rather than a ratified renumbering of the roadmap. See the Sprint 6 plan's own header note and the closeout report for this task for the full detail.
 
 ---
 
@@ -404,6 +476,8 @@ Archive/Unarchive lifecycle (item 7) implemented as **Archive and Restore**. Ite
 
 ### Phase C: Categories UI
 
+> **Not implemented under Sprint 5.** See "Scope Change and Documentation Conflict" above — remains unscheduled.
+
 **Goal:** Category management — list by type, create, edit, delete with appropriate restrictions.
 
 9. **Categories Page** (`src/pages/Categories.tsx`)
@@ -437,6 +511,8 @@ Archive/Unarchive lifecycle (item 7) implemented as **Archive and Restore**. Ite
 ---
 
 ### Phase D: Transactions UI
+
+> **Not implemented under Sprint 5.** Superseded by `docs/sprint-notes/sprint-6.md` — see "Scope Change and Documentation Conflict" above for the numbering conflict this creates with `docs/milestones.md`.
 
 **Goal:** The primary feature — transaction list with full CRUD, search, filter, sort, and pagination.
 
@@ -500,6 +576,8 @@ Archive/Unarchive lifecycle (item 7) implemented as **Archive and Restore**. Ite
 
 ### Phase E: Dashboard
 
+> **Not implemented under Sprint 5.** See "Scope Change and Documentation Conflict" above — remains unscheduled.
+
 **Goal:** Simple financial summary — no charts, no reports.
 
 22. **Dashboard Page** (`src/pages/Dashboard.tsx`)
@@ -530,6 +608,8 @@ Archive/Unarchive lifecycle (item 7) implemented as **Archive and Restore**. Ite
 ---
 
 ### Phase F: Polish, Testing, and Documentation
+
+> **Superseded by the "Sprint 5 Closeout" section above**, which covers the documentation-update items (30) for the scope actually delivered. The remaining items (26–29, 31) described tests and manual verification for Categories/Transactions/Dashboard, which were not built — see "Scope Change and Documentation Conflict" above.
 
 **Goal:** Quality assurance, tests, and documentation.
 

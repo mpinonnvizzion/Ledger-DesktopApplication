@@ -276,15 +276,19 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-core-finance-features).
 
-### Sprint 5: Personal Finance UI (Planned)
+### Sprint 5: Accounts UI (Complete)
 
-**Objective:** Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI. No new finance engine functionality unless a genuine capability gap is discovered (see Backend Change Rule in sprint-5.md).
+**Actual delivered scope:** Workspace foundation and full Accounts UI (list, create, edit, archive, restore) with local persistence, validation, sanitized errors, accessibility, and automated test coverage. Permanent account deletion was **not** implemented. Categories UI, Transactions UI, and a Dashboard — originally planned as further phases of this same sprint (see below) — were **not** implemented under Sprint 5; see the closeout note and conflict flag below.
 
-**Implementation Plan:** [docs/sprint-notes/sprint-5.md](docs/sprint-notes/sprint-5.md)
+**Objective (original, broader plan):** Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI. No new finance engine functionality unless a genuine capability gap is discovered (see Backend Change Rule in sprint-5.md).
+
+**Implementation Plan:** [docs/sprint-notes/sprint-5.md](docs/sprint-notes/sprint-5.md) — see its "Sprint 5 Closeout" section for the authoritative record of what was actually delivered.
+
+> **Documentation conflict, flagged (not resolved) here:** This section and `docs/milestones.md` still describe "Sprint 5: Personal Finance UI" as including Categories, Transactions, and Dashboard work, and define "Sprint 6" as Budgets/Goals/Reports. Transactions UI planning has been moved to a new `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI" — which conflicts with the Sprint 6 definition below. This renumbering has not been applied to `docs/milestones.md` or the "Sprint 6" section of this file, since doing so would mean deciding where Budgets/Goals/Reports and later sprints now fall — a product-owner decision outside this task's scope. See the sprint-5.md and sprint-6.md notes for full detail.
 
 #### Phase A: Foundation — Context, Primitives, and Layout ✅ Complete
 - [x] Create WorkspaceContext (first-launch workspace creation, default category seeding)
-- [x] Build UI primitives: Button, Input, Select, Textarea, FormField, Dialog, ConfirmDialog, Table, EmptyState, LoadingSpinner, ErrorMessage, Card, Badge, AmountInput, DateInput
+- [x] Build UI primitives: Button, Input, Select, Textarea, FormField, Dialog, ConfirmDialog, EmptyState, LoadingSpinner, ErrorMessage, Card, Badge — **not built:** `Table`, `AmountInput`, `DateInput` (listed as delivered in the original Phase A notes, but do not exist in the current codebase; each page uses plain semantic HTML tables, and no page has needed amount/date input yet — Sprint 6 will be the first to need `AmountInput`/`DateInput`)
 - [x] Add Categories route and sidebar navigation entry
 - [x] Refine sidebar icons, layout, and workspace indicator in sidebar
 - [x] WorkspaceProvider wraps app; AppRouter handles loading/error/no-workspace states
@@ -292,20 +296,20 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [x] Context definition separated from provider component (workspaceContextDef.ts)
 - [x] 33 new frontend tests (42 total — WorkspaceContext: 8, Button: 7, Dialog: 6, ConfirmDialog: 6, EmptyState: 6)
 
-#### Phase B: Accounts UI
+#### Phase B: Accounts UI ✅ Complete (minus deletion)
 - [x] Accounts list page with balances, loading/empty/error states (Phase B1)
 - [x] Create account dialog with validation (Phase B2)
 - [x] Edit account dialog (name, institution) (Phase B3)
 - [x] Archive/restore toggle (uses existing `is_active` field via `updateAccount` — non-destructive, reversible) (Phase B4)
-- [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative) — **deferred, not part of Phase B4**
+- [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative) — **deferred beyond Sprint 5, not scheduled**
 
-#### Phase C: Categories UI
+#### Phase C: Categories UI — not part of Sprint 5's delivered scope; unscheduled
 - [ ] Categories page with income/expense sections
 - [ ] Create category dialog with conflict handling
 - [ ] Edit category dialog (system categories: name disabled)
 - [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
 
-#### Phase D: Transactions UI
+#### Phase D: Transactions UI — not part of Sprint 5's delivered scope; superseded by [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md)
 - [ ] Transaction table with pagination (backend default ordering: date DESC, id DESC)
 - [ ] Filtering: account, category, direction, date range
 - [ ] Search by description (debounced)
@@ -314,7 +318,7 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [ ] Delete transaction with confirmation
 - [ ] Keyboard shortcuts (Ctrl/Cmd+N, Escape, Enter)
 
-#### Phase E: Dashboard
+#### Phase E: Dashboard — not part of Sprint 5's delivered scope; unscheduled
 - [ ] Total balance card (sum of active account balances from accounts list)
 - [ ] Account count card
 - [ ] Monthly income card (500-row limitation documented if exceeded)
@@ -323,19 +327,20 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [ ] Empty state for new users
 
 #### Phase F: Polish, Testing, and Documentation
-- [ ] Empty states on all pages
-- [ ] Loading and error states
-- [ ] Frontend component tests (15–25 new tests)
-- [ ] Manual workflow verification (documented — includes cascade warning, persistence, dashboard accuracy)
-- [ ] Update CHANGELOG.md
-- [ ] Update ARCHITECTURE.md (v1.5, "Sprint 5 Complete — Personal Finance UI")
-- [ ] Update README.md
-- [ ] Finalize sprint-5 notes
-- [ ] Run full verification (cargo check, cargo test, npm test, npm build, npm lint, npm format:check, npm run dev, tauri:build)
+- [x] Update CHANGELOG.md (Sprint 5 completion entry added 2026-07-18)
+- [x] Update README.md (product status refreshed 2026-07-18)
+- [x] Finalize sprint-5 notes (closeout section added 2026-07-18)
+- [ ] Empty states on all pages — only applicable to Accounts (done); Categories/Transactions/Dashboard not built
+- [ ] Loading and error states — only applicable to Accounts (done); Categories/Transactions/Dashboard not built
+- [ ] Frontend component tests (15–25 new tests) — 111 total delivered, all for Accounts UI
+- [ ] Manual workflow verification (documented — includes cascade warning, persistence, dashboard accuracy) — not performed; see Lessons Learned in sprint-5.md
+- [ ] Run full verification including `tauri:build` — `cargo check`, `cargo test`, `npm test`, `npm build`, `npm lint`, `npm format:check`, and `npm run dev` were run for every phase; `npm run tauri:build` (full packaged desktop build) was not run in any Sprint 5 phase
 
 ---
 
 ### Sprint 6: Budgets, Goals, and Reports (Planned)
+
+> **Naming conflict, flagged not resolved:** [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md) uses the name "Sprint 6" for a Transactions UI plan, conflicting with this section. This section's content (Budgets, Goals, Reports) has not been renumbered or moved — see the Sprint 5 closeout note above for why this was left for a product-owner decision.
 
 **Objective:** Help users understand and plan their finances.
 

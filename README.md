@@ -44,9 +44,9 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 ## Project Status
 
-**Current Phase:** Sprint 4 — Transaction Engine (Complete) | Milestone 2: Local Data Platform (Complete)
+**Current Phase:** Sprint 5 — Accounts UI (Complete) | Milestone 3: Core Finance Features (In Progress)
 
-The complete local data platform is in place. Transactions can be created, read, updated, deleted, searched, and filtered through Tauri commands backed by a repository with validation and atomic balance maintenance. A programmatic import path exists via validated batch-create. Performance validated against 100k transactions (29ms filtered queries). Built on the domain entities from Sprint 3 and database foundation from Sprint 2.
+Users can select or create a workspace and fully manage the reversible lifecycle of their financial accounts through the desktop UI: view accounts with live balances and summary counts, create accounts, edit an account's name and institution, and archive or restore accounts — all backed by local SQLite persistence, sanitized error handling, and accessible dialogs. Account deletion is not yet implemented. Built on the transaction engine from Sprint 4, domain entities from Sprint 3, and database foundation from Sprint 2. See `docs/sprint-notes/sprint-5.md` for the full closeout record and `docs/sprint-notes/sprint-6.md` for the next planned phase (Transactions UI).
 
 ## Getting Started
 

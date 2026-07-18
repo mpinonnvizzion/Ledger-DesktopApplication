@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 5 Complete — 2026-07-18
+
+Sprint 5 is formally closed. Delivered scope: workspace foundation and a complete, reversible Accounts UI lifecycle (create, edit, archive, restore) backed by local SQLite persistence — see `docs/sprint-notes/sprint-5.md`'s "Sprint 5 Closeout" section for the full record.
+
+### Summary
+
+- Users can select or create a workspace, view all accounts with live balances and summary counts, create accounts, edit an account's name and institution, and archive or restore accounts — all through the desktop UI with no network dependency.
+- 111 frontend tests and 104 Rust tests pass; every mutation's success, failure, and duplicate-submission paths are covered.
+- Account deletion was **not** implemented and remains deferred.
+
+### Documentation
+
+- `docs/sprint-notes/sprint-5.md` — added a "Sprint 5 Closeout" section (objective as delivered, completed scope, explicit notes, out-of-scope confirmation, review notes, lessons learned) and flagged a scope/numbering conflict with `docs/milestones.md` (see below).
+- `TASKS.md` — Sprint 5 marked complete for its actual (Accounts-only) scope; corrected a factual inaccuracy in the Phase A notes (`Table`, `AmountInput`, and `DateInput` primitives were listed as built but do not exist in the codebase); flagged the same numbering conflict near the existing "Sprint 6: Budgets, Goals, and Reports" section.
+- `README.md` — product status section updated from a stale "Sprint 4" reference to reflect Sprint 5 completion.
+
+### Known documentation conflict (unresolved, flagged for a product-owner decision)
+
+`docs/milestones.md` (the authoritative roadmap, v2.1) still defines Sprint 5 as including Categories UI, Transactions UI, and a Dashboard, and defines Sprint 6 as "Budgets, Goals, and Reports." A new `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI," was created per explicit direction for this closeout, which conflicts with that existing numbering. This was deliberately not resolved by editing `docs/milestones.md` or renumbering later sprints, since that would mean deciding where Budgets/Goals/Reports and Security/Onboarding/Business Finance now fall — a product-direction decision, not an implementation one.
+
 ## Sprint 5 Phase B4 — 2026-07-17
 
 ### Added
