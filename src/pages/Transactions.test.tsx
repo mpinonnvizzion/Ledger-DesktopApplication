@@ -18,15 +18,17 @@ vi.mock("@/hooks/useTransactionReferenceData", () => ({
 }));
 vi.mock("@/api/transactions", () => ({
   listTransactions: vi.fn(),
+  createTransaction: vi.fn(),
 }));
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTransactionReferenceData } from "@/hooks/useTransactionReferenceData";
-import { listTransactions } from "@/api/transactions";
+import { listTransactions, createTransaction } from "@/api/transactions";
 
 const mockUseWorkspace = vi.mocked(useWorkspace);
 const mockUseTransactionReferenceData = vi.mocked(useTransactionReferenceData);
 const mockListTransactions = vi.mocked(listTransactions);
+const mockCreateTransaction = vi.mocked(createTransaction);
 
 function workspaceValue(
   currentWorkspaceId: number | null,
@@ -112,6 +114,17 @@ beforeEach(() => {
   vi.clearAllMocks();
   mockUseWorkspace.mockReturnValue(workspaceValue(1));
   mockUseTransactionReferenceData.mockReturnValue(referenceDataValue({}));
+  // CreateTransactionDialog is always mounted (visibility toggled via its
+  // `open` prop), so its native <dialog> needs the same jsdom stubs used
+  // throughout the Accounts dialogs.
+  HTMLDialogElement.prototype.showModal = vi.fn(function (
+    this: HTMLDialogElement,
+  ) {
+    this.setAttribute("open", "");
+  });
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) {
+    this.removeAttribute("open");
+  });
 });
 
 describe("Transactions page — loading state", () => {
@@ -336,7 +349,7 @@ describe("Transactions page — successful rendering", () => {
 });
 
 describe("Transactions page — empty state", () => {
-  it("shows an empty state with no create button when there are no transactions", async () => {
+  it("offers the New Transaction action from the empty state (Phase B2)", async () => {
     mockListTransactions.mockResolvedValue({
       transactions: [],
       total_count: 0,
@@ -345,9 +358,12 @@ describe("Transactions page — empty state", () => {
     render(<Transactions />);
 
     expect(await screen.findByText("No transactions yet")).toBeInTheDocument();
+    // Two "New Transaction" buttons are expected simultaneously (header +
+    // empty-state action), matching the same established pattern as
+    // Accounts.tsx's "New Account" header + empty-state action.
     expect(
-      screen.queryByRole("button", { name: /new transaction/i }),
-    ).toBeNull();
+      screen.getAllByRole("button", { name: /new transaction/i }).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -403,10 +419,14 @@ describe("Transactions page — partial reference-data failure", () => {
 
     render(<Transactions />);
 
-    expect(await screen.findByRole("table")).toBeInTheDocument();
-    expect(screen.getByText("Rent")).toBeInTheDocument();
-    expect(screen.getByText("Unknown account")).toBeInTheDocument();
-    expect(screen.getByText("Uncategorized")).toBeInTheDocument();
+    const table = await screen.findByRole("table");
+    expect(within(table).getByText("Rent")).toBeInTheDocument();
+    expect(within(table).getByText("Unknown account")).toBeInTheDocument();
+    // Scoped to the table: the (always-mounted, currently closed)
+    // CreateTransactionDialog's Category select also has an "Uncategorized"
+    // option in the DOM, per the documented jsdom <dialog> visibility
+    // gotcha (see docs/sprint-notes/sprint-5.md Phase B3 notes).
+    expect(within(table).getByText("Uncategorized")).toBeInTheDocument();
     expect(screen.getByRole("alert")).toHaveTextContent(
       "A database error occurred. Please try again.",
     );
@@ -459,7 +479,7 @@ describe("Transactions page — workspace change", () => {
 });
 
 describe("Transactions page — no CRUD controls or fake data", () => {
-  it("exposes no create/edit/delete controls", async () => {
+  it("exposes no edit/delete controls (create exists as of Phase B2)", async () => {
     mockListTransactions.mockResolvedValue({
       transactions: [makeTransaction({})],
       total_count: 1,
@@ -468,9 +488,6 @@ describe("Transactions page — no CRUD controls or fake data", () => {
     render(<Transactions />);
 
     await screen.findByRole("table");
-    expect(
-      screen.queryByRole("button", { name: /new transaction/i }),
-    ).toBeNull();
     expect(screen.queryByRole("button", { name: /^edit/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
   });
@@ -521,5 +538,125 @@ describe("Transactions page — semantic table structure", () => {
 
     const table = await screen.findByRole("table");
     expect(table.parentElement).toHaveClass("overflow-x-auto");
+  });
+});
+
+describe("Transactions page — New Transaction dialog wiring (Phase B2)", () => {
+  it("opens the Create Transaction dialog from the header button", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({})],
+      total_count: 1,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    fireEvent.click(screen.getByRole("button", { name: "New Transaction" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "New Transaction" }),
+    ).toBeInTheDocument();
+  });
+
+  it("does not offer New Transaction while reference data has a warning", async () => {
+    mockUseTransactionReferenceData.mockReturnValue(
+      referenceDataValue({ error: "Something broke" }),
+    );
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({})],
+      total_count: 1,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    expect(
+      screen.queryByRole("button", { name: "New Transaction" }),
+    ).toBeNull();
+  });
+
+  it("excludes an archived account from the create-transaction selector even though it still resolves historically", async () => {
+    mockUseTransactionReferenceData.mockReturnValue(
+      referenceDataValue({
+        accounts: [makeAccount({ id: 1, name: "Active Checking" })],
+        accountsById: new Map([
+          [1, makeAccount({ id: 1, name: "Active Checking" })],
+          [
+            2,
+            makeAccount({
+              id: 2,
+              name: "Old Savings",
+              is_active: false,
+            }),
+          ],
+        ]),
+      }),
+    );
+    mockListTransactions.mockResolvedValue({
+      transactions: [
+        makeTransaction({ account_id: 2, description: "Historical entry" }),
+      ],
+      total_count: 1,
+    });
+
+    render(<Transactions />);
+    const table = await screen.findByRole("table");
+    // The archived account still resolves correctly in the read-only table.
+    expect(within(table).getByText("Old Savings")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "New Transaction" }));
+    await screen.findByRole("heading", { name: "New Transaction" });
+
+    const accountSelect = screen.getByLabelText("Account") as HTMLSelectElement;
+    const optionLabels = Array.from(accountSelect.options).map((o) => o.text);
+    expect(optionLabels).toContain("Active Checking");
+    expect(optionLabels).not.toContain("Old Savings");
+  });
+
+  it("closes the dialog, refetches transactions, and shows the new transaction after a successful create", async () => {
+    mockListTransactions
+      .mockResolvedValueOnce({ transactions: [], total_count: 0 })
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 2, description: "Just created" })],
+        total_count: 1,
+      });
+    mockUseTransactionReferenceData.mockReturnValue(
+      referenceDataValue({
+        accounts: [makeAccount({ id: 1, name: "Checking" })],
+      }),
+    );
+    mockCreateTransaction.mockResolvedValue(
+      makeTransaction({ id: 2, description: "Just created" }),
+    );
+
+    render(<Transactions />);
+    await screen.findByText("No transactions yet");
+
+    // The empty state offers its own "New Transaction" action alongside the
+    // header button (matching Accounts.tsx's header + empty-state pattern),
+    // so both are legitimately present here - either opens the same dialog.
+    fireEvent.click(
+      screen.getAllByRole("button", { name: "New Transaction" })[0],
+    );
+    await screen.findByRole("heading", { name: "New Transaction" });
+    fireEvent.change(screen.getByLabelText("Amount"), {
+      target: { value: "10" },
+    });
+    fireEvent.change(screen.getByLabelText("Description"), {
+      target: { value: "Just created" },
+    });
+    fireEvent.change(screen.getByLabelText("Account"), {
+      target: { value: "1" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Create Transaction" }));
+
+    // Dialog closes and the table (not the empty state) now shows the
+    // canonically refetched data - never a manually prepended local row.
+    expect(await screen.findByText("Just created")).toBeInTheDocument();
+    expect(screen.queryByText("No transactions yet")).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "New Transaction" }),
+    ).not.toBeInTheDocument();
+    expect(mockListTransactions).toHaveBeenCalledTimes(2);
   });
 });

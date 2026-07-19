@@ -1,7 +1,7 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** In Progress — Phase A (Transaction UI Foundation) and Phase B1 (Read-Only Transaction List) complete; Phase B2 (Create Transaction) not started
-**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19)
+**Status:** In Progress — Phase A (Transaction UI Foundation), Phase B1 (Read-Only Transaction List), and Phase B2 (Create Transaction) complete; Phase B3 (Edit Transaction) not started
+**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19, Phase B2 completed 2026-07-19)
 
 ---
 
@@ -386,6 +386,54 @@ Read-only transaction list implemented. No create, edit, delete, filter, search,
 **Review checkpoint:** first mutation-capable phase — review focuses on the sign-conversion logic and the archived-account exclusion, since both are UI-only decisions layered on top of a backend that doesn't enforce either.
 
 **Commit boundary:** one commit, scoped to Phase B2 only.
+
+#### Phase B2 Implementation Notes (2026-07-19)
+
+Transaction creation implemented. No edit, delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — Phase B3 onward remain not started.
+
+**Files created:**
+- `src/components/transactions/CreateTransactionDialog.tsx`
+- `src/components/transactions/CreateTransactionDialog.test.tsx` — 36 tests
+
+**Files modified:**
+- `src/pages/Transactions.tsx` — "New Transaction" button (header, gated on a fully usable page state) and the empty state's action, dialog wiring, canonical refetch on success (reuses the existing `retryToken` mechanism from Phase B1 — no new fetch path)
+- `src/pages/Transactions.test.tsx` — 3 Phase B1-era assertions updated to reflect that creation now exists (see "Deviations" below), 4 new integration tests
+
+**Exact `CreateTransactionInput` contract used** (verified directly against `src-tauri/src/models/transaction.rs`, `src-tauri/src/commands/transaction.rs`, and `src/api/transactions.ts` — not the draft spec):
+```
+createTransaction(
+  workspaceId: number,
+  accountId: number,
+  amountMinor: number,
+  description: string,
+  date: string,
+  categoryId?: number,   // no null variant on create
+  notes?: string,        // no null variant on create
+): Promise<Transaction>
+```
+`status` and `source` parameters exist on the wrapper but are never passed — both are server-defaulted (`uncleared`, `manual`).
+
+**Deviations from this plan's original wording, discovered during implementation:**
+1. **Direction is an accessible radio-button `<fieldset>`, not a `Select`.** The actual Phase B2 instructions (issued after this plan was written) explicitly required "an accessible grouped control" whose "selection must be understandable without color" — a `<fieldset>`/`<legend>` with two labeled radio inputs is the standard accessible pattern for a mandatory, always-visible binary choice, and matches that requirement more precisely than a dropdown. No new shared component was created — the markup lives directly in `CreateTransactionDialog.tsx`.
+2. **Uncategorized and blank Notes are sent as `undefined`, not `null`.** `categoryId?: number` and `notes?: string` on `createTransaction` have **no nullable variant** for create — unlike `updateTransaction`'s later patch-style `number | null | undefined` / `string | null | undefined`. Sending `null` would be a TypeScript contract violation. This is a direct, verified consequence of "follow the transaction contract exactly; do not reuse account-specific null-handling assumptions" — the account-editing precedent (explicit `""` to clear `institution_name`) does not apply here because transaction *creation* has no existing-value-to-preserve concept at all.
+3. **Description is required (client-side) even though the backend does not enforce non-emptiness.** `validate_create_input` (`src-tauri/src/repositories/transaction.rs`) only checks `description.len() > MAX_DESCRIPTION_LENGTH` — there is no minimum-length/non-empty check, and the SQL column defaults to `''`. Requiring a non-blank description is a UI-only decision (mirroring the Account Name field's own established required-and-trimmed pattern), documented here rather than presented as a discovered backend rule.
+4. **Focus lands on the Expense radio, not the Date/Description field.** Since Direction is now the first control in the form (a deliberate placement so the sign relationship reads top-to-bottom before Amount), the "focus the first meaningful field, not the dialog's close button" fix applies to the Expense radio input instead.
+
+**Zero-value validation decision:** the backend already independently rejects `amount_minor == 0` (`DomainError::Validation("Transaction amount cannot be zero.")` in `validate_create_input`). `parseAmountMagnitudeToMinorUnits` itself accepts `"0"` (parsing has no opinion on business rules — this was already documented in its Phase A docstring). The dialog adds a UI-layer rejection of a *parsed* zero magnitude ("Amount must be greater than zero.") before ever calling the backend, so the user sees a clear, immediate message rather than a round-trip validation error. This mirrors, rather than invents, the backend's own rule.
+
+**Local calendar-date default:** `todayLocalDateString()` (private to `CreateTransactionDialog.tsx`) builds `YYYY-MM-DD` from `Date.getFullYear()`/`getMonth()`/`getDate()` — local accessors, never `toISOString()` (UTC-based) — computed fresh every genuine reopen transition, not once at module load.
+
+**Account/category eligibility:** the dialog receives `accounts` (active-only, alphabetical) and `categories` (all, backend `category_type, name` order) as props — the exact same selector-purpose fields `useTransactionReferenceData` already exposed in Phase A/B1, unchanged. The dialog does no filtering of its own. The hook's separate `accountsById`/`categoriesById` (unfiltered, for the read-only table's historical labels) are never passed to or used by this dialog, keeping the two eligibility rules structurally separate per the architecture constraint.
+
+**No-active-accounts behavior:** when `accounts` is empty, the Account `<Select>` is replaced entirely by explanatory text ("An active account is required to record a transaction...") rather than rendering a selector with a fake/placeholder-only value; the submit button is `disabled` directly (not just validated on submit); Cancel remains available. Covered by 3 dedicated tests.
+
+**Canonical refetch (no optimistic insert):** `onCreated` closes the dialog and increments `Transactions.tsx`'s existing `retryToken` state — the exact same mechanism Phase B1 built for retry-after-error. The newly created transaction, its position under `date DESC, id DESC`, and the updated `total_count` all come from a fresh `listTransactions` call; no local array mutation or manual row insertion exists anywhere in the diff.
+
+**Account balance behavior (inspected, not modified):** `TransactionRepository::create` (`src-tauri/src/repositories/transaction.rs`) performs the row `INSERT` and `UPDATE accounts SET balance = balance + amount_minor` inside a single `unchecked_transaction()`, committed together — atomic by construction. A positive (income) `amount_minor` increases the cached balance; a negative (expense) value decreases it (SQL addition handles the sign uniformly — no separate income/expense branch exists in the SQL). Account `currency` plays no role in this arithmetic; balance is always plain integer minor units regardless of the account's currency field. If either the insert or the balance update fails, the whole transaction rolls back (nothing commits) — there is no partial-write state. This is already covered by existing Rust tests (`create_income_transaction`, `create_expense_transaction`, `create_zero_amount_fails`, and the broader `assert_balance_consistent` helper used throughout `repositories/transaction.rs`'s test module); no new Rust test was added, and no Rust code was touched. When a user later opens Accounts, that page's own existing mount-time fetch (unrelated to this phase) picks up the updated balance naturally, since React Router unmounts/remounts page components on navigation — no new cache-invalidation code was needed or added.
+
+**Test results:** 232/232 frontend tests passing (net +40 over Phase B1's 192: 36 new in `CreateTransactionDialog.test.tsx`, 4 new integration tests in `Transactions.test.tsx`, 0 net change to that file's other test count since 3 Phase-B1-era assertions were updated in place rather than added/removed), `npm run lint` clean, `npm run format:check` clean, `npm run build` succeeds. `cargo check` and 104/104 Rust tests pass, unchanged — confirms no backend code was touched.
+
+**Manual verification:** not performed. As with every prior phase, no tooling exists in this environment to drive the native Tauri/WebView window — see the manual verification checklist reported alongside this phase's closeout.
 
 ---
 

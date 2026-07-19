@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 6 Phase B2 — 2026-07-19
+
+Transaction creation implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No edit, delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — that begins with Phase B3.
+
+### Added
+
+- **Create Transaction workflow** (`src/components/transactions/CreateTransactionDialog.tsx`)
+  - "New Transaction" action in the Transactions page header and its empty state (shown only when the page is fully loaded, with no blocking or reference-data error), mirroring `Accounts.tsx`'s header + empty-state pattern
+  - Dialog fields: Direction (accessible Expense/Income radio group, Expense selected by default), Amount (`AmountInput`, positive magnitude only), Date (`Input type="date"`, defaults to today's local calendar date, never UTC), Description (required), Account (active accounts only, required), Category (optional, "Uncategorized" plus every workspace category in the backend's own order), Notes (optional)
+  - Client-side validation: valid non-zero amount (mirrors the backend's own independent zero-amount rejection), required date, required non-blank description (≤500 characters), required account, notes (≤2000 characters)
+  - On submit: the entered magnitude and selected direction are converted via the existing `applyTransactionDirection`/`parseAmountMagnitudeToMinorUnits` helpers into a signed `amount_minor`, then `createTransaction` is called with the exact typed contract (Uncategorized and blank Notes are omitted, not sent as `null` — see Notes below)
+  - When no active account exists, the Account selector is replaced with an explanation and the submit button is disabled directly, rather than showing a selector with a fake value
+  - Duplicate submission is prevented; API failures keep the dialog open, preserve every entered value, and show a sanitized message
+  - On success: the dialog closes, the form resets, and `Transactions.tsx` canonically refetches the transaction list (reusing Phase B1's existing retry mechanism) — no optimistic row insertion
+  - 36 new component tests plus 4 new integration tests in `Transactions.test.tsx`
+
+### Notes
+
+- No backend or schema changes. No new npm dependencies. No edit, delete, transfer, import, or reconciliation code.
+- **`categoryId`/`notes` are sent as `undefined`, never `null`, for create** — `createTransaction`'s TypeScript contract has no nullable variant for either parameter (unlike `updateTransaction`'s later patch-style nullable fields). This is a verified, deliberate divergence from a literal "submit null for blank optional fields" reading — see `docs/sprint-notes/sprint-6.md`'s Phase B2 notes for the full contract citation.
+- **Zero-amount rejection is a UI-layer decision that mirrors an existing backend rule**, not a new one: the backend's `validate_create_input` already independently rejects `amount_minor == 0`.
+- Account balance updates are atomic (single SQLite transaction covering the insert and the `balance = balance + amount_minor` update) and were inspected, not modified — Rust remains fully authoritative, and existing Rust tests already cover this path.
+- Manual native-app verification was not performed — no tooling exists in this environment to drive the Tauri/WebView window, consistent with every prior phase.
+
 ## Sprint 6 Phase B1 — 2026-07-19
 
 Read-only transaction list implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No create, edit, delete, filter, search, or pagination-control workflow exists yet — that begins with Phase B2.

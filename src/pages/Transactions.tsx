@@ -16,21 +16,25 @@ import {
 import { PageLoadingState } from "@/components/ui/LoadingSpinner";
 import { ErrorMessage, PageErrorState } from "@/components/ui/ErrorMessage";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { CreateTransactionDialog } from "@/components/transactions/CreateTransactionDialog";
 
 // Matches the backend's own DEFAULT_LIMIT (src-tauri/src/repositories/transaction.rs).
 // Passed explicitly for clarity rather than relying on the backend default silently.
 const PAGE_SIZE = 50;
 
 /**
- * Sprint 6 Phase B1: read-only transaction history. Fetches the first page
- * of transactions in the backend's own `date DESC, id DESC` order (never
- * re-sorted client-side) and resolves account/category labels for display.
- * No create, edit, delete, filter, search, or pagination controls exist yet
- * - see docs/sprint-notes/sprint-6.md for the full phase plan.
+ * Sprint 6 Phase B1 (read-only history) + Phase B2 (create). Fetches the
+ * first page of transactions in the backend's own `date DESC, id DESC`
+ * order (never re-sorted client-side) and resolves account/category labels
+ * for display. No edit, delete, filter, search, or pagination controls
+ * exist yet - see docs/sprint-notes/sprint-6.md for the full phase plan.
  */
 export default function Transactions() {
   const { currentWorkspaceId } = useWorkspace();
   const {
+    accounts,
+    categories,
     accountsById,
     categoriesById,
     loading: referenceLoading,
@@ -45,6 +49,7 @@ export default function Transactions() {
     null,
   );
   const [retryToken, setRetryToken] = useState(0);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   useEffect(() => {
     if (currentWorkspaceId === null) {
@@ -93,6 +98,16 @@ export default function Transactions() {
     retryReferenceData();
   }
 
+  // Canonical refetch after a successful create - no optimistic row
+  // insertion. Reuses the same retryToken mechanism as a failed-load retry,
+  // so the freshly created transaction, its position in `date DESC, id DESC`
+  // order, and the updated `total_count` all come from the backend, not a
+  // manually patched local copy.
+  function handleTransactionCreated() {
+    setShowCreateDialog(false);
+    setRetryToken((token) => token + 1);
+  }
+
   const loading = transactionsLoading || referenceLoading;
 
   // A transaction-fetch failure blocks the whole page: there is no
@@ -107,15 +122,29 @@ export default function Transactions() {
   const showReferenceWarning =
     !loading && !blockingError && referenceError !== null;
 
+  // "New Transaction" is only offered once the page is in a fully usable
+  // state: not loading, no blocking transaction-fetch error, and reference
+  // data (the account/category selectors the dialog needs) loaded cleanly.
+  // A page with a reference-data warning is deliberately excluded here even
+  // though the table itself still renders in that state - see Phase B1's
+  // partial-failure notes.
+  const canCreateTransaction = !loading && !blockingError && !referenceError;
+
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-2xl font-semibold text-gray-900">Transactions</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          Review income and expenses across your accounts. Transaction entry is
-          being built next — this page cannot yet create, edit, or delete
-          transactions.
-        </p>
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900">Transactions</h2>
+          <p className="mt-1 text-sm text-gray-600">
+            Review income and expenses across your accounts. This page cannot
+            yet edit or delete transactions.
+          </p>
+        </div>
+        {canCreateTransaction && (
+          <Button onClick={() => setShowCreateDialog(true)}>
+            New Transaction
+          </Button>
+        )}
       </header>
 
       {loading && <PageLoadingState label="Loading transactions…" />}
@@ -136,7 +165,15 @@ export default function Transactions() {
           {transactions.length === 0 ? (
             <EmptyState
               title="No transactions yet"
-              description="Recorded transactions will appear here once transaction entry is available."
+              description="Recorded transactions will appear here once you create one."
+              action={
+                canCreateTransaction
+                  ? {
+                      label: "New Transaction",
+                      onClick: () => setShowCreateDialog(true),
+                    }
+                  : undefined
+              }
             />
           ) : (
             <>
@@ -234,6 +271,17 @@ export default function Transactions() {
             </>
           )}
         </>
+      )}
+
+      {currentWorkspaceId !== null && (
+        <CreateTransactionDialog
+          open={showCreateDialog}
+          workspaceId={currentWorkspaceId}
+          accounts={accounts}
+          categories={categories}
+          onClose={() => setShowCreateDialog(false)}
+          onCreated={handleTransactionCreated}
+        />
       )}
     </div>
   );

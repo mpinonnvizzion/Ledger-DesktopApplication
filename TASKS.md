@@ -346,7 +346,7 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 - [x] Phase A: Transaction UI foundation (`AmountInput`, direction/presentation helpers, reference-data loading, page shell) — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase A Implementation Notes
 - [x] Phase B1: Read-only transaction list (table, historical account/category label resolution) — completed 2026-07-19; account filter and pagination controls deferred to a later phase per this phase's actual scope; see `docs/sprint-notes/sprint-6.md`'s Phase B1 Implementation Notes
-- [ ] Phase B2: Create transaction
+- [x] Phase B2: Create transaction — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase B2 Implementation Notes
 - [ ] Phase B3: Edit transaction
 - [ ] Phase B4: Delete transaction
 
