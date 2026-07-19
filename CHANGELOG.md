@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Roadmap Reconciliation — 2026-07-19
+
+The Product Owner resolved the Sprint 5/6 roadmap conflict flagged at Sprint 5 closeout (see below). This is a documentation-only change; no application code was modified.
+
+### Decision
+
+- Sprint 5 is confirmed as **Accounts UI** and is complete.
+- Sprint 6 is **Transactions UI** (ratifies `docs/sprint-notes/sprint-6.md` as the official Sprint 6 plan).
+- Sprint 7 is **Categories UI** (new).
+- Sprint 8 is **Dashboard** (new).
+- **Budgets, Goals, and Reports** move out of Milestone 3 entirely and are replanned later as separate product domains rather than one immediate sprint.
+- Security & Onboarding, Business Finance, Commercial Readiness, Installer/Distribution, Beta Hardening, Public Launch Preparation, and Optional Connected Services (previously numbered Sprints 7-12) move to an unnumbered "Future Milestones (Unscheduled)" list, since their prior sprint numbers are now used by Categories UI and Dashboard. Detailed schedules for these domains were not invented — only their previously documented scope was preserved as placeholders.
+
+### Documentation
+
+- `docs/milestones.md` (v2.2) — Milestone 3 redefined as Sprints 5-8; Milestones 4 and 5 replaced with a "Future Milestones (Unscheduled)" section.
+- `TASKS.md` — Sprint 6/7/8 sections defined; later sprints moved to a "Future Milestones (Unscheduled)" section; conflict warnings removed.
+- `docs/business/ROADMAP.md` — Sprint 5-8 sections updated to match; Sprints 6 (old)-12 replaced with "Future: Unscheduled Product Domains".
+- `docs/sprint-notes/sprint-5.md` — "Scope Change and Documentation Conflict" section marked resolved.
+- `docs/sprint-notes/sprint-6.md` — naming-conflict warning marked resolved; document ratified as the official Sprint 6 plan.
+- `README.md` — status note updated to reference the ratified Sprint 6/7/8 sequence.
+
 ## Sprint 5 Complete — 2026-07-18
 
 Sprint 5 is formally closed. Delivered scope: workspace foundation and a complete, reversible Accounts UI lifecycle (create, edit, archive, restore) backed by local SQLite persistence — see `docs/sprint-notes/sprint-5.md`'s "Sprint 5 Closeout" section for the full record.

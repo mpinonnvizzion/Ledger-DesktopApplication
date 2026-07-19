@@ -339,335 +339,182 @@ Sprint 4 is complete when:
 
 ---
 
-# Sprint 5: Personal Finance UI
+# Sprint 5: Accounts UI (Complete)
 
 ## Objective
 
-Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI.
+Transform the completed local data platform into the first usable personal finance application, starting with account management. Connect existing repositories and Tauri commands to the desktop UI.
 
-## Scope
+## Scope (as delivered)
 
 * Workspace initialization and context
-* Account UI (list, create, edit, archive, delete with cascade warnings)
-* Category UI (list, create, edit, delete with system protection)
-* Transaction UI (table, create, edit, delete, search, filter, pagination)
-* Dashboard summary (total balance, account count, monthly income, monthly expenses, recent transactions)
+* Account UI (list, create, edit, archive/restore — permanent delete deferred)
 * Empty states, loading states, error states, confirmation dialogs
-* Desktop keyboard shortcuts
-* Responsive desktop layout
 
 ## Out of Scope
 
-* Budgets, goals, reports (Sprint 6)
-* Charts or graphs (Sprint 6)
+* Categories UI (Sprint 7)
+* Transactions UI (Sprint 6)
+* Dashboard (Sprint 8)
+* Budgets, goals, reports (Future — see below)
 * CSV import
-* Onboarding wizard (Sprint 7)
-* App lock (Sprint 7)
+* Onboarding wizard, app lock (Future — see below)
 * Plaid, licensing, cloud sync
 
 ## Exit Criteria
 
 Sprint 5 is complete when:
 
-* Users can create workspaces, accounts, categories, and transactions through the desktop UI.
-* Account balances update after transaction changes.
-* Transactions can be searched and filtered.
+* Users can create workspaces and manage the reversible account lifecycle through the desktop UI.
 * Data persists after closing and reopening the application.
-* Destructive actions have confirmation dialogs with clear consequence descriptions.
+* Destructive-adjacent actions (archive) have confirmation dialogs with clear consequence descriptions.
 * No budgets, goals, reports, or charts exist.
+
+See `docs/sprint-notes/sprint-5.md` for the full closeout record, including why Categories, Transactions, and Dashboard were narrowed out of this sprint's actual delivery.
 
 ---
 
-# Sprint 6: Budgets, Goals, and Reports
+# Sprint 6: Transactions UI
 
 ## Objective
 
-Help users understand and plan their finances.
+A user can view, create, edit, and safely delete locally stored financial transactions across their accounts, with account balances updating automatically.
 
 ## Scope
 
-* Monthly budgets
-* Budget progress tracking
-* Savings goals
-* Spending by category report
-* Income vs expense report
-* Month comparison view
-* Basic profit/loss for business workspaces
-* Dashboard report widgets
-* CSV import UI (column mapping, preview, file picker)
-* CSV export
+* Transaction table: list, create, edit, delete
+* Single-account filter and basic Previous/Next pagination
+* Amount entry via a direction toggle (Income/Expense) plus a positive-amount input
 
 ## Out of Scope
 
-* Advanced forecasting
-* Tax reporting
-* Investment analysis
-* AI insights
-* Cloud sync
-* Onboarding wizard (Sprint 7)
-* App lock (Sprint 7)
+* Full multi-field filtering (category, date range, direction) and text search — candidates for a later review phase
+* Keyboard shortcuts
+* Budgets, goals, reports (Future — see below)
+* Dashboard (Sprint 8)
+* CSV import, Plaid, licensing, cloud sync
 
 ## Exit Criteria
 
 Sprint 6 is complete when:
 
-* Users can create budgets and track progress.
-* Users can create savings goals.
-* Users can view spending by category and income vs. expense reports.
-* Dashboard displays report widgets.
-* CSV import workflow allows file selection, column mapping, preview, and import.
-* Business users can see simple income/expense summaries.
+* Users can create, view, edit, and delete transactions through the desktop UI.
+* Account balances update automatically after every transaction change.
+* Data persists after closing and reopening the application.
+
+See `docs/sprint-notes/sprint-6.md` for the full implementation plan.
 
 ---
 
-# Sprint 7: Security, Onboarding, and Business Finance
+# Sprint 7: Categories UI
 
 ## Objective
 
-Make Ledger feel safe and professional, and add the business workflows needed by freelancers and small businesses.
+A user can manage the categories used to organize transactions, with system categories protected from renaming or deletion.
 
 ## Scope
 
-* First-launch onboarding flow
-* Local password/PIN setup
-* App unlock screen
-* Auto-lock setting
-* Local database security design
-* Keychain integration research
-* Backup reminder
-* Privacy explanation screen
-* Settings foundation
-* Client management
-* Vendor management
-* Invoice creation with line items
-* Invoice status tracking
-* Basic invoice PDF/export
-* Receipt attachment on transactions
-* Accounts payable tracking
-* Accounts receivable tracking
-* Business workspace reports
+* Categories page listing categories grouped by income/expense type
+* Create category dialog with duplicate-name conflict handling
+* Edit category dialog (system categories: name disabled)
+* Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: deletion disabled)
 
 ## Out of Scope
 
-* Plaid token encryption
-* License activation
-* Stripe
-* Production code signing
-* Payroll
-* Tax filing
-* Accountant portal
-* Payment processing
-* Inventory
-* Full double-entry accounting
+* Dashboard (Sprint 8)
+* Budgets, goals, reports (Future — see below)
+* Plaid, licensing, cloud sync
 
 ## Exit Criteria
 
 Sprint 7 is complete when:
 
-* New users have a guided first-launch experience.
-* Users can protect the app with a password or PIN.
-* Users understand that their data is local.
-* Business users can manage clients and vendors.
-* Business users can create invoices.
-* Business users can track receivables and payables.
-* Receipts can be attached to transactions.
-* Business workspaces feel distinct from personal workspaces.
+* Users can view categories grouped by income and expense type.
+* Users can create, edit, and delete user-created categories.
+* System categories cannot be renamed or deleted (backend enforces, UI reflects it).
+
+A detailed implementation plan (`docs/sprint-notes/sprint-7.md`) will be written before this sprint begins, per the Documentation First rule.
 
 ---
 
-# Sprint 8: Commercial Readiness
+# Sprint 8: Dashboard
 
 ## Objective
 
-Prepare Ledger to become a paid desktop product.
+A user gets an at-a-glance summary of their finances on launch.
 
 ## Scope
 
-* License activation flow
-* Trial mode
-* License status UI
-* Device activation policy
-* Stripe purchase flow documentation
-* Keygen or equivalent licensing integration
-* Update policy documentation
-* Terms/privacy/support documentation
-* Release notes structure
+* Total balance card (sum of active account balances)
+* Active account count card
+* Monthly income and monthly expenses cards (500-row limitation documented if exceeded)
+* Recent transactions list
+* Empty state for new users
 
 ## Out of Scope
 
-* Plaid sync
-* Cloud backup
-* Cloud sync
-* Advanced subscriptions
+* Budgets, goals, reports, charts (Future — see below)
+* Plaid, licensing, cloud sync
 
 ## Exit Criteria
 
 Sprint 8 is complete when:
 
-* Users can activate Ledger with a license key.
-* Trial behavior is defined and implemented.
-* License status is visible in settings.
-* The app can distinguish trial, activated, and expired trial states.
-* Commercial documentation is ready for a private beta.
+* Dashboard displays total balance, account count, and monthly income/expense totals.
+* Dashboard displays recent transactions.
+* New users see an appropriate empty state.
+
+A detailed implementation plan (`docs/sprint-notes/sprint-8.md`) will be written before this sprint begins, per the Documentation First rule.
 
 ---
 
-# Sprint 9: Installer, Updates, and Distribution
+# Future: Unscheduled Product Domains
 
-## Objective
+The domains below follow Sprint 8 but do not yet have assigned sprint numbers or a committed detailed schedule, per the Product Owner decision of 2026-07-19. Budgets, Goals, and Reports were previously bundled as a single sprint; they are now separate future domains to be replanned individually rather than treated as one immediate sprint. See [docs/milestones.md](../milestones.md#future-milestones-unscheduled) for the authoritative version of this list.
 
-Make Ledger installable and updateable on target platforms.
+## Future: Budgets
 
-## Scope
+Monthly budget creation, editing, and progress tracking.
 
-* macOS build
-* Windows build
-* Installer generation
-* Code signing research and setup
-* Auto-update system
-* Release artifacts
-* GitHub Actions build pipeline
-* Crash/error reporting strategy
-* Private beta distribution process
+## Future: Goals
 
-## Out of Scope
+Savings goals.
 
-* Public launch
-* App Store distribution
-* Microsoft Store distribution
-* Mobile apps
+## Future: Reports
 
-## Exit Criteria
+Spending-by-category report, income-vs-expense report, month comparison view, basic profit/loss for business workspaces, dashboard report widgets, CSV import/export.
 
-Sprint 9 is complete when:
+## Future: Security & Onboarding
 
-* Ledger can be built for macOS and Windows.
-* Installers are produced.
-* Update mechanism is documented and tested.
-* Private beta builds can be distributed safely.
-* Release checklist exists.
+First-launch onboarding flow, local password/PIN setup, app unlock screen, auto-lock setting, local database security design, keychain integration research, backup reminder, privacy explanation screen, settings foundation.
 
----
+## Future: Business Finance
 
-# Sprint 10: Plaid Relay and Bank Sync
+Client management, vendor management, invoice creation with line items, invoice status tracking, invoice PDF/export, receipt attachment on transactions, accounts payable tracking, accounts receivable tracking, business workspace reports.
 
-## Objective
+## Future: Commercial Readiness
 
-Add optional subscription-based bank synchronization.
+License activation flow, trial mode, license status UI, device activation policy, Stripe purchase flow documentation, Keygen or equivalent licensing integration, update policy documentation, terms/privacy/support documentation, release notes structure.
 
-## Scope
+## Future: Installer, Updates, and Distribution
 
-* Plaid architecture finalization
-* Cloud relay implementation
-* Link token flow
-* Token exchange flow
-* Transactions sync
-* Balance refresh
-* Subscription entitlement checks
-* Connected accounts UI
-* Sync status
-* Institution repair flow
-* Plaid error handling
+macOS build, Windows build, installer generation, code signing research and setup, auto-update system, release artifacts, GitHub Actions build pipeline, crash/error reporting strategy, private beta distribution process.
 
-## Out of Scope
+## Future: Beta Hardening
 
-* Full cloud sync
-* Multi-device database sync
-* AI categorization
-* Payment processing for invoices
+Data integrity testing, import edge cases, large dataset testing, error handling, backup/restore testing, installer testing, update testing, license edge cases, Plaid sandbox testing, UX polish, documentation polish.
 
-## Exit Criteria
+## Future: Public Launch Preparation
 
-Sprint 10 is complete when:
+Landing page, pricing page, download page, purchase flow, license email flow, documentation site, privacy policy, terms of use, refund policy, support workflow, public release checklist, launch announcement.
 
-* Users with an active bank sync subscription can connect accounts.
-* Transactions can sync from Plaid.
-* Balances can refresh.
-* Expired subscriptions stop future sync.
-* Previously synced data remains accessible.
-* No Plaid secrets are stored inside the desktop app.
+## Future: Optional Connected Services (Plaid Bank Sync)
 
----
+Plaid architecture finalization, cloud relay implementation, Link token flow, token exchange flow, transactions sync, balance refresh, subscription entitlement checks, connected accounts UI, sync status, institution repair flow, Plaid error handling.
 
-# Sprint 11: Beta Hardening
+## Sequencing
 
-## Objective
-
-Prepare Ledger for external beta users.
-
-## Scope
-
-* Data integrity testing
-* Import edge cases
-* Large dataset testing
-* Error handling
-* Backup/restore testing
-* Installer testing
-* Update testing
-* License edge cases
-* Plaid sandbox testing
-* UX polish
-* Documentation polish
-
-## Out of Scope
-
-* New major features
-* Cloud sync
-* Mobile
-* Payroll
-* Enterprise features
-
-## Exit Criteria
-
-Sprint 11 is complete when:
-
-* Ledger is stable enough for private beta.
-* Known risks are documented.
-* Critical workflows are tested.
-* Data loss risks are minimized.
-* Support documentation exists.
-
----
-
-# Sprint 12: Public Launch Preparation
-
-## Objective
-
-Prepare Ledger for initial public sale.
-
-## Scope
-
-* Landing page
-* Pricing page
-* Download page
-* Purchase flow
-* License email flow
-* Documentation site
-* Privacy policy
-* Terms of use
-* Refund policy
-* Support workflow
-* Public release checklist
-* Launch announcement
-
-## Out of Scope
-
-* Feature expansion
-* Mobile app
-* Cloud sync
-* Enterprise sales
-
-## Exit Criteria
-
-Sprint 12 is complete when:
-
-* A customer can discover Ledger.
-* A customer can buy Ledger.
-* A customer can download Ledger.
-* A customer can activate Ledger.
-* A customer can use Ledger safely.
-* A customer can get support.
-* Ledger is ready for public launch.
+Ordering among these domains is not yet finalized as a formal sprint sequence. The one fixed constraint carried over from prior planning: **Optional Connected Services (Plaid) remains positioned after commercial readiness** — the local product must be excellent without bank sync before Plaid is introduced.
 
 ---
 

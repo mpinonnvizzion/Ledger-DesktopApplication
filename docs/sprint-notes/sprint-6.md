@@ -1,19 +1,15 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** Proposed — not yet started, not yet ratified against the roadmap
-**Date:** 2026-07-18
+**Status:** Ratified — Sprint 6: Transactions UI (not yet started)
+**Date:** 2026-07-18 (ratified 2026-07-19)
 
 ---
 
-> ## ⚠ Naming Conflict — Read Before Using This Document
+> ## Naming Conflict — Resolved 2026-07-19
 >
-> `docs/milestones.md` (v2.1, the authoritative roadmap) and `TASKS.md` both define **"Sprint 6" as "Budgets, Goals, and Reports,"** with Transactions UI as part of **"Sprint 5: Personal Finance UI."** This document was created per explicit direction to plan "Sprint 6" as **Transactions UI**, which conflicts with that existing numbering.
+> `docs/milestones.md` (v2.1) and `TASKS.md` previously defined "Sprint 6" as "Budgets, Goals, and Reports," with Transactions UI described as part of "Sprint 5: Personal Finance UI." This document was created per explicit direction to plan "Sprint 6" as Transactions UI, which conflicted with that existing numbering.
 >
-> This conflict has **not** been resolved. Resolving it (renumbering `docs/milestones.md`, deciding where Budgets/Goals/Reports and later sprints now fall) is a product-owner decision outside the scope of the task that produced this document. Until that decision is made:
->
-> - Treat this document as **"the plan for the next chunk of work after Sprint 5's actual delivered scope (Accounts UI),"** not as a ratified, numbered sprint.
-> - Do not delete or renumber the existing "Sprint 6: Budgets, Goals, and Reports" section of `TASKS.md` or `docs/milestones.md` based on this document alone.
-> - See `docs/sprint-notes/sprint-5.md`'s "Scope Change and Documentation Conflict" section for the full context.
+> The Product Owner resolved this conflict on 2026-07-19: **this document is now the ratified Sprint 6 plan.** Sprint 5 is confirmed as Accounts UI (complete); Sprint 7 is Categories UI; Sprint 8 is Dashboard; Budgets, Goals, and Reports move out of Milestone 3 to be replanned later as separate product domains. See `docs/milestones.md`'s "Future Milestones (Unscheduled)" section and `docs/sprint-notes/sprint-5.md`'s "Scope Change and Documentation Conflict" section for the full history.
 
 ---
 
@@ -477,7 +473,7 @@ If review after B4 finds none of these are needed yet, close Sprint 6 without a 
 
 - No modifications to `src-tauri/` (Rust backend), migrations, or `src/api/transactions.ts` are anticipated — this plan found no genuine capability gap requiring one.
 - No changes to `Accounts.tsx`, its dialogs, or any Accounts test.
-- No changes to `docs/milestones.md`'s sprint numbering (the naming conflict is flagged, not resolved, by this document).
+- No changes to `docs/milestones.md`'s sprint numbering by this document itself — the 2026-07-19 Product Owner decision that ratified this document as "Sprint 6" was recorded directly in `docs/milestones.md`, `TASKS.md`, and `docs/business/ROADMAP.md`, not here.
 - No new npm dependencies.
 - No product direction changes beyond the explicit, documented decisions above (each traceable to either a discovered backend fact or an explicitly flagged, reversible UI-only choice).
 
@@ -490,10 +486,10 @@ Two topics surfaced during this inspection that are genuine architecture decisio
 1. **Transfer modeling.** When transfer support is eventually designed, an ADR should decide the representation (a linked pair of ordinary transactions with a shared transfer id, vs. a dedicated `transfers` entity) and its atomicity/consistency guarantees (what happens if one side of a transfer is edited or deleted independently). This plan deliberately does not attempt to answer that question by building a client-side approximation.
 2. **Category-type-to-transaction-direction validation policy.** The backend currently allows any category to be assigned to any transaction regardless of the category's `income`/`expense` type and the transaction's amount sign (see "Categories" above). An ADR (or a simpler documented decision) should establish whether this should ever become an enforced rule, and at which layer (backend validation vs. UI-only filtering) — this plan explicitly declines to invent UI-only enforcement in its absence (Product Decision 4).
 
-A third topic — the Sprint 5/6 naming and scope conflict with `docs/milestones.md` — is a roadmap/process decision, not an architecture decision, so it is not proposed as an ADR; it is flagged directly in `sprint-5.md`'s closeout section and in `TASKS.md` instead.
+A third topic — the Sprint 5/6 naming and scope conflict with `docs/milestones.md` — was a roadmap/process decision, not an architecture decision, so it was not proposed as an ADR; it was resolved directly by the Product Owner and is recorded in `sprint-5.md`'s closeout section, `docs/milestones.md`, and `TASKS.md`.
 
 ---
 
-## Sprint-to-Milestone Alignment (as currently documented, unresolved)
+## Sprint-to-Milestone Alignment (resolved 2026-07-19)
 
-Per `docs/milestones.md`, this work falls under **Milestone 3: Core Finance Features**, whose stated exit criteria include "Transactions can be searched, filtered, and paginated" — a broader bar than this plan's Phase B1–B4 core (which ships basic pagination and a single account filter, deferring full search/filtering to a reviewed B5). This plan does not claim to satisfy Milestone 3's exit criteria on its own; it is the next incremental phase toward them, following the same phased approach that delivered Sprint 5's Accounts UI.
+Per `docs/milestones.md`, this work falls under **Milestone 3: Core Finance Features**, now formally scoped as Sprints 5 (Accounts UI, complete), 6 (Transactions UI, this document), 7 (Categories UI), and 8 (Dashboard). This plan's Phase B1–B4 core (basic pagination and a single account filter, deferring full search/multi-field filtering to a reviewed B5) is accepted as Sprint 6's scope — Milestone 3's exit criteria were narrowed accordingly during the 2026-07-19 reconciliation rather than requiring this plan to expand to meet a broader bar. See `docs/milestones.md`'s Milestone 3 section for the current exit criteria.

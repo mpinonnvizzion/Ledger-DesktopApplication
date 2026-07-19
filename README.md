@@ -46,7 +46,7 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 **Current Phase:** Sprint 5 — Accounts UI (Complete) | Milestone 3: Core Finance Features (In Progress)
 
-Users can select or create a workspace and fully manage the reversible lifecycle of their financial accounts through the desktop UI: view accounts with live balances and summary counts, create accounts, edit an account's name and institution, and archive or restore accounts — all backed by local SQLite persistence, sanitized error handling, and accessible dialogs. Account deletion is not yet implemented. Built on the transaction engine from Sprint 4, domain entities from Sprint 3, and database foundation from Sprint 2. See `docs/sprint-notes/sprint-5.md` for the full closeout record and `docs/sprint-notes/sprint-6.md` for the next planned phase (Transactions UI).
+Users can select or create a workspace and fully manage the reversible lifecycle of their financial accounts through the desktop UI: view accounts with live balances and summary counts, create accounts, edit an account's name and institution, and archive or restore accounts — all backed by local SQLite persistence, sanitized error handling, and accessible dialogs. Account deletion is not yet implemented. Built on the transaction engine from Sprint 4, domain entities from Sprint 3, and database foundation from Sprint 2. Sprint 6 (Transactions UI), Sprint 7 (Categories UI), and Sprint 8 (Dashboard) are next, per [docs/milestones.md](docs/milestones.md). See `docs/sprint-notes/sprint-5.md` for the full closeout record and `docs/sprint-notes/sprint-6.md` for the Sprint 6 implementation plan.
 
 ## Getting Started
 

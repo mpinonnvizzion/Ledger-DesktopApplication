@@ -1,7 +1,7 @@
 # Ledger Desktop — Project Milestones
 
-**Version:** 2.1
-**Last Updated:** 2026-07-07
+**Version:** 2.2
+**Last Updated:** 2026-07-19
 
 ---
 
@@ -34,9 +34,10 @@ These principles are non-negotiable across all milestones. See [ADR 0006](adr/00
 |-----------|------|---------|--------|
 | 1 | Application Foundation | 0, 1 | Complete |
 | 2 | Local Data Platform | 2, 3, 4 | Complete |
-| 3 | Core Finance Features | 5, 6, 7 | In Progress |
-| 4 | Commercial Readiness | 8, 9, 11, 12 | Planned |
-| 5 | Optional Connected Services | 10 | Planned |
+| 3 | Core Finance Features | 5, 6, 7, 8 | In Progress |
+| — | Future Milestones (Unscheduled) | Not yet numbered | Planned |
+
+See "Future Milestones (Unscheduled)" below for the product domains that follow Milestone 3 (Budgets, Goals, Reports, Security & Onboarding, Business Finance, Commercial Readiness, Installer & Distribution, Beta Hardening, Public Launch, Optional Connected Services). These are intentionally not assigned sprint numbers yet — see the Sprint 6/7/8 renumbering decision recorded in Milestone 3's Notes below.
 
 ---
 
@@ -172,277 +173,91 @@ Build the complete local persistence layer that every finance feature depends on
 ## Milestone 3: Core Finance Features
 
 **Status:** In Progress
-**Sprints:** 5, 6, 7
-**Roadmap Layer:** Personal Finance UI → Budgets and Reports → Security and Business Finance
+**Sprints:** 5, 6, 7, 8
+**Roadmap Layer:** Daily Finance Workflow
 
 ### Objective
 
-Transform the completed data platform into a fully usable offline personal finance application. After this milestone, a user can track finances end-to-end: view dashboards and reports, set budgets and goals, manage clients and invoices, and protect the app with a local PIN/password. The app is useful without any internet connection or subscription.
+Transform the completed data platform into a fully usable offline personal finance application: manage accounts, record and browse transactions, organize categories, and see an at-a-glance dashboard — all offline, all local.
 
 ### Scope
 
-**Sprint 5: Personal Finance UI**
+**Sprint 5: Accounts UI (Complete)**
 - Workspace initialization and context management
-- Account UI (list, create, edit, archive, delete with cascade warnings)
-- Category management UI (list, create, edit, delete with system protection)
-- Transaction UI (table, create, edit, delete, search, filter, pagination)
-- Dashboard summary (total balance, account count, monthly income/expenses, recent transactions)
-- Empty states, loading states, error states, confirmation dialogs
-- Desktop keyboard shortcuts and responsive layout
+- Account UI: list, create, edit, archive/restore (permanent deletion deferred — see `docs/sprint-notes/sprint-5.md`)
+- Empty, loading, and error states; confirmation dialogs for archive
 
-**Sprint 6: Budgets, Goals, and Reports**
-- Monthly budget creation and editing
-- Budget progress tracking
-- Savings goals
-- Spending by category report
-- Income vs. expense report
-- Month comparison view
-- Basic profit/loss for business workspaces
-- Dashboard report widgets
-- CSV import UI (column mapping, preview, file picker)
-- CSV export
+**Sprint 6: Transactions UI**
+- Transaction table: list, create, edit, delete
+- Single-account filter and basic Previous/Next pagination
+- Amount entry via a direction toggle (Income/Expense) plus a positive-amount input
+- See `docs/sprint-notes/sprint-6.md` for the implementation plan
 
-**Sprint 7: Security, Onboarding, and Business Finance**
-- First-launch onboarding flow
-- Local password/PIN setup
-- App unlock screen
-- Auto-lock setting
-- Local database security design
-- Keychain integration research
-- Backup reminder and privacy explanation
-- Settings foundation
-- Client and vendor management
-- Invoice creation with line items
-- Invoice status tracking
-- Invoice PDF/export
-- Receipt attachment on transactions
-- Accounts payable and receivable tracking
-- Business workspace reports
+**Sprint 7: Categories UI**
+- Categories page listing categories grouped by income/expense type
+- Create category dialog with duplicate-name conflict handling
+- Edit category dialog (system categories: name disabled)
+- Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: deletion disabled)
+
+**Sprint 8: Dashboard**
+- Total balance card (sum of active account balances)
+- Active account count card
+- Monthly income / monthly expenses cards (500-row limitation documented if exceeded, per the Known API Gap in `docs/sprint-notes/sprint-5.md`)
+- Recent transactions list
+- Empty state for new users
 
 ### Out of Scope
 
-- Licensing, activation, or trial mode (Sprint 8)
-- Installer packaging and distribution
-- Auto-updater or code signing
+- Budgets, goals, reports, CSV import/export (moved out of Milestone 3 — see "Future Milestones" below)
+- Security, onboarding, and app lock (moved out of Milestone 3)
+- Client/vendor management, invoicing, AP/AR, business workspace reports (moved out of Milestone 3)
+- Licensing, installer, updater, or distribution code
 - Plaid bank sync or any cloud service
 - Database encryption (deferred per security model)
-- Payroll, tax filing, accountant portal, inventory
 - Full double-entry accounting
-- AI categorization or automation
-- Public launch preparation
 
 ### Exit Criteria
 
-- [ ] A user can manage workspaces, accounts, categories, and transactions through the desktop UI
-- [ ] Account balances update after transaction changes
-- [ ] Transactions can be searched, filtered, and paginated
+- [x] A user can manage workspaces and the reversible account lifecycle through the desktop UI (Sprint 5)
+- [ ] A user can create, view, edit, and delete transactions, with account balances updating automatically
+- [ ] A user can manage categories (list, create, edit, delete) with system-category protections enforced
 - [ ] Dashboard displays summary data (balance, accounts, monthly totals, recent transactions)
-- [ ] A user can create budgets and track progress
-- [ ] A user can create savings goals
-- [ ] A user can view spending by category and income vs. expense reports
-- [ ] A user can protect the app with a local password/PIN
-- [ ] First-launch onboarding guides new users
-- [ ] Business users can manage clients, vendors, and invoices
-- [ ] Receipt attachments work on transactions
 - [ ] All core workflows function offline without internet
-- [ ] No licensing, installer, updater, code signing, or distribution code exists
-- [ ] No Plaid or cloud code exists
+- [ ] No budgets, goals, reports, business finance, security/onboarding, licensing, or cloud code exists
 
 ### Dependent Sprints
 
-- Sprint 5: Personal Finance UI
-- Sprint 6: Budgets, Goals, and Reports
-- Sprint 7: Security, Onboarding, and Business Finance
+- Sprint 5: Accounts UI (Complete)
+- Sprint 6: Transactions UI
+- Sprint 7: Categories UI
+- Sprint 8: Dashboard
 
 ### Notes
 
-Sprint 5 was originally scoped as "Budgets, Goals, and Reports" but was repurposed to "Personal Finance UI" because the data platform requires a working UI before financial planning features can be layered on. Budgets, goals, and reports moved to Sprint 6. Security, onboarding, and business finance are combined in Sprint 7.
+Sprint 5 was originally scoped as "Personal Finance UI" (Accounts + Categories + Transactions + Dashboard combined), but only the Accounts UI was actually delivered — see `docs/sprint-notes/sprint-5.md`'s closeout section for the full record of that narrowing.
 
-Sprint 7 items (invoicing, clients, vendors, onboarding, security) are a large scope. If Sprint 7 proves too large, it may be split or partially deferred to a post-launch version without blocking Milestone 4. This decision should be documented as an ADR if it occurs.
-
----
-
-## Milestone 4: Commercial Readiness
-
-**Status:** Planned
-**Sprints:** 8, 9, 11, 12
-**Roadmap Layer:** Commercial Desktop Product
-
-### Objective
-
-Prepare Ledger Desktop for commercial release. After this milestone, a customer can discover, purchase, download, install, and use Ledger Desktop. The application has licensing and activation, is packaged, signed, notarized (macOS), auto-updateable, beta-tested, and supported by published documentation including terms of use, privacy policy, refund policy, and a support workflow.
-
-### Scope
-
-**Sprint 8: Commercial Readiness**
-- License activation flow (Keygen or equivalent)
-- Trial mode (14-day full-feature)
-- License status UI in Settings
-- Device activation policy (3 devices)
-- Stripe purchase flow documentation
-- Update policy documentation
-- Terms, privacy, and support documentation
-- Release notes structure
-
-**Sprint 9: Installer, Updates, and Distribution**
-- macOS build (.dmg) with code signing and notarization
-- Windows build (.msi/.exe) with code signing
-- Auto-update system via Tauri updater
-- Release artifact generation
-- GitHub Actions build pipeline
-- Crash/error reporting strategy
-- Private beta distribution process
-- Release checklist
-
-**Sprint 11: Beta Hardening**
-- Data integrity testing
-- Import edge case testing
-- Large dataset performance testing
-- Error handling review
-- Backup/restore testing
-- Installer testing on clean machines
-- Update flow testing
-- License edge case testing
-- UX polish pass
-- Documentation polish
-
-**Sprint 12: Public Launch Preparation**
-- Landing page
-- Pricing page
-- Download page
-- Purchase flow (Stripe Checkout)
-- License email delivery
-- Documentation site
-- Privacy policy, terms of use, refund policy
-- Support workflow
-- Public release checklist
-- Launch announcement
-
-### Out of Scope
-
-- Plaid bank sync or cloud relay
-- New financial features beyond what Milestones 1–3 deliver
-- App Store or Microsoft Store distribution
-- Mobile applications
-- Enterprise sales or multi-user permissions
-- Cloud sync or cloud backup
-
-### Exit Criteria
-
-- [ ] Users can activate Ledger with a license key
-- [ ] Trial mode works (14-day, full-feature, countdown visible)
-- [ ] License status is visible in Settings
-- [ ] macOS and Windows installers build and install correctly
-- [ ] Code signing is in place (both platforms)
-- [ ] Auto-update mechanism is functional and tested
-- [ ] Private beta builds can be distributed securely
-- [ ] Data integrity, import, backup, and update flows are tested
-- [ ] A customer can purchase via Stripe and receive a license key
-- [ ] Landing, pricing, and download pages exist
-- [ ] Privacy policy, terms of use, and refund policy are published
-- [ ] Support workflow is documented and functional
-- [ ] Release checklist is completed
-- [ ] Subscriptions are not required for any core financial feature
-
-### Dependent Sprints
-
-- Sprint 8: Commercial Readiness
-- Sprint 9: Installer, Updates, and Distribution
-- Sprint 11: Beta Hardening
-- Sprint 12: Public Launch Preparation
-
-### Notes
-
-Sprint 10 (Plaid) is intentionally excluded from this milestone. The product launches as a fully functional local-first finance application without requiring bank sync. This aligns with the [Roadmap](business/ROADMAP.md) principle that "the local product must be excellent without bank sync before Plaid is introduced."
+This created a temporary conflict between the delivered scope and this document's sprint numbering, which was flagged (not resolved) in the Sprint 5 closeout and in `docs/sprint-notes/sprint-6.md`. On 2026-07-19 the Product Owner resolved that conflict with the following decision: Sprint 5 is confirmed as Accounts UI (complete); Sprint 6 is Transactions UI; Sprint 7 is Categories UI; Sprint 8 is Dashboard. Budgets, Goals, and Reports — previously bundled as a single "Sprint 6" — are moved out of Milestone 3 entirely and will be replanned later as separate product domains rather than one immediate sprint. This also displaces the prior Sprint 7 (Security, Onboarding, and Business Finance) and Sprint 8 (Commercial Readiness) content, since those sprint numbers are now used by Categories UI and Dashboard — see "Future Milestones (Unscheduled)" below for where that content now lives.
 
 ---
 
-## Milestone 5: Optional Connected Services
+## Future Milestones (Unscheduled)
 
-**Status:** Planned
-**Sprints:** 10
-**Roadmap Layer:** Optional Connected Services
+The following product domains follow Milestone 3 but do not yet have assigned sprint numbers or a committed detailed schedule. Each one was previously documented with more specific scope (in this file's prior revisions and in `docs/business/ROADMAP.md`); that scope is retained below as a placeholder so it isn't lost, but it should be treated as a starting point for replanning, not a ratified sprint plan. Detailed sprint-level plans (objective, phases, exit criteria) will be written when each domain is next picked up, per this project's [Documentation First](../CLAUDE.md) rule.
 
-### Objective
+- **Future: Budgets** — Monthly budget creation, editing, and progress tracking.
+- **Future: Goals** — Savings goals.
+- **Future: Reports** — Spending-by-category report, income-vs-expense report, month comparison view, basic profit/loss for business workspaces, dashboard report widgets, CSV import/export.
+- **Future: Security & Onboarding** — First-launch onboarding flow, local password/PIN setup, app unlock screen, auto-lock setting, local database security design, keychain integration research, backup reminder and privacy explanation, settings foundation.
+- **Future: Business Finance** — Client and vendor management, invoice creation with line items, invoice status tracking, invoice PDF/export, receipt attachment on transactions, accounts payable/receivable tracking, business workspace reports.
+- **Future: Commercial Readiness** — License activation flow, trial mode, license status UI, device activation policy, Stripe purchase flow documentation, update policy documentation, terms/privacy/support documentation, release notes structure.
+- **Future: Installer, Updates, and Distribution** — macOS and Windows builds with code signing and notarization, auto-update system, release artifact generation, CI build pipeline, crash/error reporting strategy, private beta distribution process.
+- **Future: Beta Hardening** — Data integrity, import edge case, large dataset, backup/restore, installer, update-flow, and license edge-case testing; UX and documentation polish.
+- **Future: Public Launch Preparation** — Landing/pricing/download pages, Stripe Checkout purchase flow, license email delivery, documentation site, privacy policy, terms of use, refund policy, support workflow, public release checklist.
+- **Future: Optional Connected Services (Plaid Bank Sync)** — Cloud relay service, Plaid Link token flow, transaction sync, balance refresh, subscription entitlement validation, connected accounts UI, institution repair flow.
 
-Introduce optional, subscription-gated cloud-assisted services without compromising the local-first architecture. After this milestone, users with an active Bank Sync subscription can connect bank accounts, automatically import transactions, and refresh balances. The cloud relay architecture ensures Plaid API secrets never exist in the desktop application. Users without a subscription continue using Ledger without any degradation of core functionality.
+### Sequencing
 
-The core product is complete before any connected services are introduced. Subscriptions exist only for recurring-cost services.
-
-### Scope
-
-**Sprint 10: Plaid Relay and Bank Sync**
-- Cloud relay service implementation (stores Plaid API credentials securely)
-- Plaid Link token flow (relay creates tokens, desktop renders Link in webview)
-- Public token exchange via relay
-- Transaction sync from Plaid to local SQLite
-- Balance refresh
-- Subscription entitlement validation before each sync operation
-- Connected accounts UI (list, status, last sync, disconnect)
-- Sync status display
-- Institution repair flow for expired or broken connections
-- Plaid error handling and retry behavior
-- Plaid sandbox testing
-- Connected-service documentation
-
-### Out of Scope
-
-- Full cloud sync or multi-device database sync
-- Cloud backup
-- AI categorization or automation
-- Plaid investments API, identity verification, or payment initiation
-- Real-time transaction streaming
-- Self-hosted relay option
-- New financial features or UI beyond bank sync
-- Changes to the one-time purchase model for core features
-
-### Exit Criteria
-
-- [ ] Users with an active Bank Sync subscription can connect bank accounts via Plaid Link
-- [ ] Transactions sync from Plaid to the local SQLite database
-- [ ] Balances refresh from connected institutions
-- [ ] Expired subscriptions stop future sync but preserve all local data
-- [ ] New connections are blocked when subscription is inactive
-- [ ] No Plaid API secrets exist in the desktop application binary
-- [ ] Cloud relay validates subscription entitlement before each operation
-- [ ] Institution repair flow handles broken connections
-- [ ] Synced transactions are editable and exportable like any other transaction
-- [ ] Cancelling Bank Sync never deletes local financial data
-- [ ] Core app functionality is completely unaffected for non-subscribers
-
-### Dependent Sprints
-
-- Sprint 10: Plaid Relay and Bank Sync
-
-### Notes
-
-This milestone is intentionally positioned after public launch (Milestone 4). Bank Sync is the only planned subscription-gated service. The subscription exists because Plaid charges per-connection recurring fees — the subscription covers real operating costs, not artificial feature gating. See [ADR 0005](adr/0005-plaid-requires-cloud-relay.md), [ADR 0006](adr/0006-one-time-purchase-with-optional-subscriptions.md), and the [Plaid Bank Sync Specification](specifications/plaid-bank-sync.md).
-
-Future connected services (cloud backup, multi-device sync) are version 2.0 candidates and are not part of any current milestone. If introduced, they must follow the same principle: subscriptions only where real recurring costs exist.
-
----
-
-## Sprint-to-Milestone Mapping
-
-| Sprint | Name | Milestone |
-|--------|------|-----------|
-| 0 | Documentation and Architecture Foundation | 1: Application Foundation |
-| 1 | Project Foundation | 1: Application Foundation |
-| 2 | Database Foundation | 2: Local Data Platform |
-| 3 | Core Domain Entities | 2: Local Data Platform |
-| 4 | Transaction Engine | 2: Local Data Platform |
-| 5 | Personal Finance UI | 3: Core Finance Features |
-| 6 | Budgets, Goals, and Reports | 3: Core Finance Features |
-| 7 | Security, Onboarding, and Business Finance | 3: Core Finance Features |
-| 8 | Commercial Readiness | 4: Commercial Readiness |
-| 9 | Installer, Updates, and Distribution | 4: Commercial Readiness |
-| 10 | Plaid Relay and Bank Sync | 5: Optional Connected Services |
-| 11 | Beta Hardening | 4: Commercial Readiness |
-| 12 | Public Launch Preparation | 4: Commercial Readiness |
-
-### Sequencing Note
-
-Sprint 10 (Plaid) is numbered between Sprint 9 and Sprint 11 in the original sprint plan, but it belongs to Milestone 5, which follows Milestone 4. The implementation order for Sprints 10, 11, and 12 should be determined during Milestone 4 planning. The product can launch without Plaid (Milestone 4 complete) and add bank sync afterward (Milestone 5).
+Ordering among these placeholders is not yet finalized as a formal sprint sequence. The one fixed constraint carried over from prior planning: **Optional Connected Services (Plaid) remains positioned after commercial readiness** — the local product must be excellent without bank sync before Plaid is introduced, per [ADR 0005](adr/0005-plaid-requires-cloud-relay.md), [ADR 0006](adr/0006-one-time-purchase-with-optional-subscriptions.md), and the [Roadmap](business/ROADMAP.md). Beyond that constraint, the Product Owner will assign sprint numbers and write detailed plans as each domain is next picked up.
 
 ---
 
@@ -452,16 +267,13 @@ Sprint 10 (Plaid) is numbered between Sprint 9 and Sprint 11 in the original spr
 Milestone 1: Application Foundation (Complete)
     │
     ▼
-Milestone 2: Local Data Platform
+Milestone 2: Local Data Platform (Complete)
     │
     ▼
-Milestone 3: Core Finance Features
+Milestone 3: Core Finance Features (In Progress — Sprints 5-8)
     │
     ▼
-Milestone 4: Commercial Readiness
-    │
-    ▼
-Milestone 5: Optional Connected Services
+Future Milestones (Unscheduled — see above)
 ```
 
 Each milestone depends on the previous milestone being complete. No milestone should be started before its predecessor's exit criteria are met.

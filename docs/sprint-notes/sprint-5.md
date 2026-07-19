@@ -60,20 +60,18 @@ Sprint 5 did **not** include: permanent account deletion, transaction UI, balanc
 - **Backend contracts must be inspected before designing forms.** Phase B3 discovered that `UpdateAccountInput` has no `account_type` field and that the update repository's merge semantics differ from create's (omission preserves rather than clears). Both would have produced a broken or silently-wrong UI if the form had been designed from the plan's speculative field list instead of the actual Rust/TypeScript contract.
 - **Shared-component accessibility defects should be fixed only when concrete use cases reveal them.** The `Dialog` component's hardcoded title `id` was invisible for three phases (only one dialog ever existed on the page at a time) and only became a real, concrete defect in Phase B3 when a second simultaneous dialog instance was introduced. It was fixed at that point — not speculatively hardened in Phase A against a scenario that didn't yet exist.
 
-### Scope Change and Documentation Conflict — Flagged for Product Decision
+### Scope Change and Documentation Conflict — Resolved 2026-07-19
 
 This document, as originally written, planned "Sprint 5: Personal Finance UI" to include Categories UI (Phase C), Transactions UI (Phase D), a Dashboard (Phase E), and a cross-cutting polish phase (Phase F) — see those sections below, which were never implemented. In practice, only Phase A (Foundation) and Phase B (Accounts UI, minus deletion) were built across four independently reviewed and committed sub-phases (B1–B4). This closeout formally narrows "Sprint 5, as delivered" to that actual scope.
 
-This creates an unresolved conflict with `docs/milestones.md` (v2.1), which is the authoritative roadmap document and which still defines:
+This created a conflict with `docs/milestones.md` (v2.1 at the time), the authoritative roadmap document, which still defined:
 - **Sprint 5: Personal Finance UI** — Accounts + Categories + Transactions + Dashboard (the original, broader scope)
 - **Sprint 6: Budgets, Goals, and Reports**
 - **Sprint 7: Security, Onboarding, and Business Finance**
 
-`TASKS.md`'s Milestone 3 breakdown mirrors this same structure.
+`TASKS.md`'s Milestone 3 breakdown mirrored this same structure. Transactions UI planning had continued in a new document, `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI," which directly conflicted with `docs/milestones.md`'s then-existing definition of Sprint 6 as "Budgets, Goals, and Reports." Categories UI and a Dashboard (originally Sprint 5 Phases C and E) were not addressed by `sprint-6.md` either, and remained unscheduled.
 
-Per explicit direction for this closeout, Transactions UI planning continues in a new document, `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI." **This directly conflicts with `docs/milestones.md`'s existing definition of Sprint 6 as "Budgets, Goals, and Reports."** Categories UI and a Dashboard (originally Sprint 5 Phases C and E) are not addressed by `sprint-6.md` either, and remain unscheduled.
-
-This conflict is deliberately **not resolved by editing `docs/milestones.md` or renumbering later sprints** as part of this closeout — doing so would mean inventing product direction (deciding where Budgets/Goals/Reports and Security/Onboarding/Business Finance now fall in the sequence) beyond what was asked. That is a product-owner decision. Until it is made, `docs/milestones.md` remains the authoritative sprint numbering, and `docs/sprint-notes/sprint-6.md` should be read as a proposed plan for "the next chunk of work after Sprint 5's actual scope" rather than a ratified renumbering of the roadmap. See the Sprint 6 plan's own header note and the closeout report for this task for the full detail.
+**Resolution:** The Product Owner resolved this conflict on 2026-07-19. Sprint 5 is confirmed as Accounts UI (complete, as delivered above). **Sprint 6 is Transactions UI** (ratifying `docs/sprint-notes/sprint-6.md` as the actual Sprint 6 plan). **Sprint 7 is Categories UI.** **Sprint 8 is Dashboard.** Budgets, Goals, and Reports — previously bundled as a single "Sprint 6" — move out of Milestone 3 entirely and will be replanned later as separate product domains, rather than as one immediate sprint. Security, Onboarding, and Business Finance content (previously Sprint 7) also moves out of Milestone 3's numbered sprints, since Sprint 7 is now Categories UI. See `docs/milestones.md`'s "Future Milestones (Unscheduled)" section, `TASKS.md`, and `docs/business/ROADMAP.md` for the reconciled, authoritative sprint sequence.
 
 ---
 

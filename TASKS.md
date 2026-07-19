@@ -274,17 +274,17 @@ Covers Sprints 2, 3, 4. See [milestone details](docs/milestones.md#milestone-2-l
 
 ## Milestone 3: Core Finance Features (In Progress)
 
-Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-core-finance-features).
+Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-3-core-finance-features).
 
 ### Sprint 5: Accounts UI (Complete)
 
-**Actual delivered scope:** Workspace foundation and full Accounts UI (list, create, edit, archive, restore) with local persistence, validation, sanitized errors, accessibility, and automated test coverage. Permanent account deletion was **not** implemented. Categories UI, Transactions UI, and a Dashboard — originally planned as further phases of this same sprint (see below) — were **not** implemented under Sprint 5; see the closeout note and conflict flag below.
+**Actual delivered scope:** Workspace foundation and full Accounts UI (list, create, edit, archive, restore) with local persistence, validation, sanitized errors, accessibility, and automated test coverage. Permanent account deletion was **not** implemented. Categories UI, Transactions UI, and a Dashboard — originally planned as further phases of this same sprint (see below) — were **not** implemented under Sprint 5; they are now formally scheduled as Sprint 7, Sprint 6, and Sprint 8 respectively (see the Product Decision note below).
 
 **Objective (original, broader plan):** Transform the completed local data platform into the first usable personal finance application. Connect existing repositories and Tauri commands to the desktop UI. No new finance engine functionality unless a genuine capability gap is discovered (see Backend Change Rule in sprint-5.md).
 
 **Implementation Plan:** [docs/sprint-notes/sprint-5.md](docs/sprint-notes/sprint-5.md) — see its "Sprint 5 Closeout" section for the authoritative record of what was actually delivered.
 
-> **Documentation conflict, flagged (not resolved) here:** This section and `docs/milestones.md` still describe "Sprint 5: Personal Finance UI" as including Categories, Transactions, and Dashboard work, and define "Sprint 6" as Budgets/Goals/Reports. Transactions UI planning has been moved to a new `docs/sprint-notes/sprint-6.md`, titled "Sprint 6: Transactions UI" — which conflicts with the Sprint 6 definition below. This renumbering has not been applied to `docs/milestones.md` or the "Sprint 6" section of this file, since doing so would mean deciding where Budgets/Goals/Reports and later sprints now fall — a product-owner decision outside this task's scope. See the sprint-5.md and sprint-6.md notes for full detail.
+> **Roadmap reconciliation (2026-07-19, resolved):** Sprint 5's actual delivered scope (Accounts UI only) previously conflicted with this section and `docs/milestones.md`, which described "Sprint 5: Personal Finance UI" as including Categories, Transactions, and Dashboard work, and defined "Sprint 6" as Budgets/Goals/Reports. The Product Owner resolved this conflict: **Sprint 6 is Transactions UI, Sprint 7 is Categories UI, and Sprint 8 is Dashboard.** Budgets, Goals, and Reports move out of Milestone 3 and will be replanned later as separate product domains rather than one immediate sprint — see "Future Milestones (Unscheduled)" below. See `docs/sprint-notes/sprint-5.md`'s closeout section for the historical detail of how this conflict arose.
 
 #### Phase A: Foundation — Context, Primitives, and Layout ✅ Complete
 - [x] Create WorkspaceContext (first-launch workspace creation, default category seeding)
@@ -303,13 +303,13 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [x] Archive/restore toggle (uses existing `is_active` field via `updateAccount` — non-destructive, reversible) (Phase B4)
 - [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative) — **deferred beyond Sprint 5, not scheduled**
 
-#### Phase C: Categories UI — not part of Sprint 5's delivered scope; unscheduled
+#### Phase C: Categories UI — not part of Sprint 5's delivered scope; scheduled as Sprint 7
 - [ ] Categories page with income/expense sections
 - [ ] Create category dialog with conflict handling
 - [ ] Edit category dialog (system categories: name disabled)
 - [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
 
-#### Phase D: Transactions UI — not part of Sprint 5's delivered scope; superseded by [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md)
+#### Phase D: Transactions UI — not part of Sprint 5's delivered scope; scheduled as Sprint 6, see [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md)
 - [ ] Transaction table with pagination (backend default ordering: date DESC, id DESC)
 - [ ] Filtering: account, category, direction, date range
 - [ ] Search by description (debounced)
@@ -318,7 +318,7 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 - [ ] Delete transaction with confirmation
 - [ ] Keyboard shortcuts (Ctrl/Cmd+N, Escape, Enter)
 
-#### Phase E: Dashboard — not part of Sprint 5's delivered scope; unscheduled
+#### Phase E: Dashboard — not part of Sprint 5's delivered scope; scheduled as Sprint 8
 - [ ] Total balance card (sum of active account balances from accounts list)
 - [ ] Account count card
 - [ ] Monthly income card (500-row limitation documented if exceeded)
@@ -338,137 +338,61 @@ Covers Sprints 5, 6, 7. See [milestone details](docs/milestones.md#milestone-3-c
 
 ---
 
-### Sprint 6: Budgets, Goals, and Reports (Planned)
+### Sprint 6: Transactions UI (Planned — next up)
 
-> **Naming conflict, flagged not resolved:** [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md) uses the name "Sprint 6" for a Transactions UI plan, conflicting with this section. This section's content (Budgets, Goals, Reports) has not been renumbered or moved — see the Sprint 5 closeout note above for why this was left for a product-owner decision.
+**Objective:** A user can view, create, edit, and safely delete locally stored financial transactions across their accounts, with account balances updating automatically.
 
-**Objective:** Help users understand and plan their finances.
+**Implementation Plan:** [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md) — ratified as the ordinary plan for Sprint 6 by the 2026-07-19 Product Owner decision (see the Sprint 5 note above); its own header's "naming conflict" warning is now resolved.
 
-- [ ] Monthly budget creation and editing
-- [ ] Budget progress tracking
-- [ ] Savings goals
-- [ ] Spending by category report
-- [ ] Income vs. expense report
-- [ ] Month comparison view
-- [ ] Basic profit/loss for business workspaces
-- [ ] Dashboard report widgets
-- [ ] CSV import UI (column mapping, preview, file picker)
-- [ ] CSV export
+- [ ] Phase A: Transaction UI foundation (`AmountInput`, direction helpers, page shell)
+- [ ] Phase B1: Read-only transaction list (table, account filter, pagination)
+- [ ] Phase B2: Create transaction
+- [ ] Phase B3: Edit transaction
+- [ ] Phase B4: Delete transaction
 
 ---
 
-### Sprint 7: Security, Onboarding, and Business Finance (Planned)
+### Sprint 7: Categories UI (Planned)
 
-**Objective:** Make Ledger feel safe and professional, and add freelancer/small business workflows.
+**Objective:** A user can manage the categories used to organize transactions, with system categories protected from renaming or deletion.
 
-- [ ] First-launch onboarding flow
-- [ ] Local password/PIN setup
-- [ ] App unlock screen
-- [ ] Auto-lock setting
-- [ ] Local database security design
-- [ ] Keychain integration research
-- [ ] Backup reminder and privacy explanation
-- [ ] Settings foundation
-- [ ] Client management
-- [ ] Vendor management
-- [ ] Invoice creation with line items
-- [ ] Invoice status tracking
-- [ ] Invoice PDF/export
-- [ ] Receipt attachment on transactions
-- [ ] Accounts payable tracking
-- [ ] Accounts receivable tracking
-- [ ] Business workspace reports
+- [ ] Categories page with income/expense sections
+- [ ] Create category dialog with conflict handling
+- [ ] Edit category dialog (system categories: name disabled)
+- [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
+
+*Detailed phase breakdown to be written in a `docs/sprint-notes/sprint-7.md` implementation plan before work begins, per this project's Documentation First rule.*
 
 ---
 
-## Milestone 4: Commercial Readiness (Planned)
+### Sprint 8: Dashboard (Planned)
 
-Covers Sprints 8, 9, 11, 12. See [milestone details](docs/milestones.md#milestone-4-commercial-readiness).
+**Objective:** A user gets an at-a-glance summary of their finances on launch.
 
-### Sprint 8: Commercial Readiness (Planned)
+- [ ] Total balance card (sum of active account balances)
+- [ ] Account count card
+- [ ] Monthly income card (500-row limitation documented if exceeded)
+- [ ] Monthly expenses card (500-row limitation documented if exceeded)
+- [ ] Recent transactions list (5-10 items)
+- [ ] Empty state for new users
 
-**Objective:** Prepare Ledger for paid distribution.
-
-- [ ] License activation flow (Keygen or equivalent)
-- [ ] Trial mode (14-day full-feature)
-- [ ] License status UI in Settings
-- [ ] Device activation policy (3 devices)
-- [ ] Stripe purchase flow documentation
-- [ ] Update policy documentation
-- [ ] Terms, privacy, and support documentation
-- [ ] Release notes structure
+*Detailed phase breakdown to be written in a `docs/sprint-notes/sprint-8.md` implementation plan before work begins, per this project's Documentation First rule.*
 
 ---
 
-### Sprint 9: Installer, Updates, and Distribution (Planned)
+## Future Milestones (Unscheduled)
 
-**Objective:** Make Ledger installable and updateable.
+The following product domains follow Milestone 3 but do not yet have assigned sprint numbers, per the 2026-07-19 Product Owner decision recorded in the Sprint 5 note above. Budgets, Goals, and Reports are moved out of Milestone 3 and will be replanned later as separate product domains rather than one immediate sprint. Security/Onboarding, Business Finance, and Commercial Readiness content previously numbered as Sprints 7-9, 11, and 12 is preserved here without sprint numbers, since those numbers are now used by Categories UI and Dashboard. See [docs/milestones.md](docs/milestones.md#future-milestones-unscheduled) for the authoritative version of this list.
 
-- [ ] macOS build (.dmg)
-- [ ] Windows build (.msi/.exe)
-- [ ] Code signing research and setup
-- [ ] macOS notarization
-- [ ] Auto-update system (Tauri updater)
-- [ ] Release artifact generation
-- [ ] GitHub Actions build pipeline
-- [ ] Crash/error reporting strategy
-- [ ] Private beta distribution process
-- [ ] Release checklist
+- **Future: Budgets** — Monthly budget creation, editing, and progress tracking.
+- **Future: Goals** — Savings goals.
+- **Future: Reports** — Spending-by-category report, income-vs-expense report, month comparison view, basic profit/loss for business workspaces, dashboard report widgets, CSV import/export.
+- **Future: Security & Onboarding** — First-launch onboarding flow, local password/PIN setup, app unlock screen, auto-lock setting, local database security design, keychain integration research, backup reminder and privacy explanation, settings foundation.
+- **Future: Business Finance** — Client and vendor management, invoice creation with line items, invoice status tracking, invoice PDF/export, receipt attachment on transactions, accounts payable/receivable tracking, business workspace reports.
+- **Future: Commercial Readiness** — License activation flow, trial mode, license status UI, device activation policy, Stripe purchase flow documentation, update policy documentation, terms/privacy/support documentation, release notes structure.
+- **Future: Installer, Updates, and Distribution** — macOS and Windows builds with code signing and notarization, auto-update system, release artifact generation, CI build pipeline, crash/error reporting strategy, private beta distribution process.
+- **Future: Beta Hardening** — Data integrity, import edge case, large dataset, backup/restore, installer, update-flow, and license edge-case testing; UX and documentation polish.
+- **Future: Public Launch Preparation** — Landing/pricing/download pages, Stripe Checkout purchase flow, license email delivery, documentation site, privacy policy, terms of use, refund policy, support workflow, public release checklist.
+- **Future: Optional Connected Services (Plaid Bank Sync)** — Cloud relay service, Plaid Link token flow, transaction sync, balance refresh, subscription entitlement validation, connected accounts UI, institution repair flow.
 
----
-
-### Sprint 11: Beta Hardening (Planned)
-
-**Objective:** Prepare for external beta users.
-
-- [ ] Data integrity testing
-- [ ] Import edge case testing
-- [ ] Large dataset performance testing
-- [ ] Error handling review
-- [ ] Backup/restore testing
-- [ ] Installer testing on clean machines
-- [ ] Update flow testing
-- [ ] License edge case testing
-- [ ] UX polish pass
-- [ ] Documentation polish
-
----
-
-### Sprint 12: Public Launch Preparation (Planned)
-
-**Objective:** Prepare for initial public sale.
-
-- [ ] Landing page
-- [ ] Pricing page
-- [ ] Download page
-- [ ] Purchase flow (Stripe Checkout)
-- [ ] License email delivery
-- [ ] Documentation site
-- [ ] Privacy policy
-- [ ] Terms of use
-- [ ] Refund policy
-- [ ] Support workflow
-- [ ] Public release checklist
-- [ ] Launch announcement
-
----
-
-## Milestone 5: Optional Connected Services (Planned)
-
-Covers Sprint 10. See [milestone details](docs/milestones.md#milestone-5-optional-connected-services).
-
-### Sprint 10: Plaid Relay and Bank Sync (Planned)
-
-**Objective:** Add optional subscription-based bank synchronization.
-
-- [ ] Cloud relay service implementation
-- [ ] Plaid Link token flow
-- [ ] Public token exchange
-- [ ] Transaction sync
-- [ ] Balance refresh
-- [ ] Subscription entitlement validation
-- [ ] Connected accounts UI
-- [ ] Sync status display
-- [ ] Institution repair flow
-- [ ] Plaid error handling
-- [ ] Plaid sandbox testing
+Sprint numbers and detailed implementation plans for these domains will be assigned when each is next picked up. The one fixed sequencing constraint carried over from prior planning: Optional Connected Services (Plaid) remains positioned after commercial readiness.
