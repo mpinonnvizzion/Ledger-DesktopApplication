@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 6 Phase A — 2026-07-19
+
+Transaction UI foundation implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No transaction list, create/edit/delete workflow, filtering, search, or pagination exists yet — that begins with Phase B1.
+
+### Added
+
+- **Transaction amount/direction/presentation helpers** (`src/lib/transactionHelpers.ts`)
+  - `parseAmountMagnitudeToMinorUnits` — strict parser for a user-typed positive currency magnitude into integer minor units; rejects empty/whitespace, a leading `-`, more than two decimal places, thousands separators, and malformed input
+  - `applyTransactionDirection` — applies an Income/Expense direction to a positive magnitude to produce the signed `amount_minor` the backend expects (expense negates, income passes through, zero never becomes `-0`)
+  - `formatMinorUnits` — re-export of the existing `formatAmount`; no new formatting logic
+  - `formatSignedAmount`, `directionFromAmount`, `directionLabel`, `formatTransactionDate` (never constructs a `Date` object, so it cannot shift a date through a timezone), `categoryDisplayLabel`, `accountDisplayLabel`, `amountDisplayClass`
+  - 35 new tests
+- **`AmountInput` component** (`src/components/ui/AmountInput.tsx`) — a controlled, accessible currency-magnitude text field. Stores and returns the raw typed string; performs no parsing, normalization, or backend calls itself. 9 new tests.
+- **`useTransactionReferenceData` hook** (`src/hooks/useTransactionReferenceData.ts`) — loads active accounts (client-sorted alphabetically, archived accounts excluded) and all categories (backend-ordered, unfiltered — categories have no archived state) for the current workspace, for later transaction forms to consume. Sanitized errors, retry, and workspace-change reload. 8 new tests.
+- **Transactions page shell** (`src/pages/Transactions.tsx`) — replaces the static placeholder with a title, honest "not yet available" copy, and loading/error/empty states wired to `useTransactionReferenceData`. No fake data, no table, no CRUD controls. 6 new tests.
+
+### Notes
+
+- No backend or schema changes. No new npm dependencies. No transfer, import, reconciliation, or bulk-action code.
+- `parseAmountMagnitudeToMinorUnits` is a new implementation, not a wrapper around the existing lenient `parseAmount` — see `docs/sprint-notes/sprint-6.md`'s Phase A Implementation Notes for why a stricter, separate parser was needed while formatting was still reused unchanged.
+- Manual native-app verification was not performed — no tooling exists in this environment to drive the Tauri/WebView window, consistent with every prior Sprint 5 phase.
+
 ## Roadmap Reconciliation — 2026-07-19
 
 The Product Owner resolved the Sprint 5/6 roadmap conflict flagged at Sprint 5 closeout (see below). This is a documentation-only change; no application code was modified.

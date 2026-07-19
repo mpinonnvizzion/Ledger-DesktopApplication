@@ -1,7 +1,7 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** Ratified — Sprint 6: Transactions UI (not yet started)
-**Date:** 2026-07-18 (ratified 2026-07-19)
+**Status:** In Progress — Phase A (Transaction UI Foundation) complete; Phase B1 (Read-Only Transaction List) not started
+**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19)
 
 ---
 
@@ -249,6 +249,39 @@ These are candidates for a later phase (see "Phase B5" below) or a subsequent sp
 **Review checkpoint:** primitives and shell only — reviewable as a small, low-risk diff before any workflow logic exists.
 
 **Commit boundary:** one commit, scoped to Phase A only.
+
+#### Phase A Implementation Notes (2026-07-19)
+
+Transaction UI foundation implemented. No transaction list, dialog, or mutation exists yet — Phase B1 onward remain not started.
+
+**Files created:**
+- `src/lib/transactionHelpers.ts` — `parseAmountMagnitudeToMinorUnits`, `applyTransactionDirection`, `formatMinorUnits`, `formatSignedAmount`, `directionFromAmount`, `directionLabel`, `formatTransactionDate`, `categoryDisplayLabel`, `accountDisplayLabel`, `amountDisplayClass`
+- `src/lib/transactionHelpers.test.ts` — 35 tests
+- `src/components/ui/AmountInput.tsx` — new controlled currency-magnitude text field
+- `src/components/ui/AmountInput.test.tsx` — 9 tests
+- `src/hooks/useTransactionReferenceData.ts` — narrowly scoped hook loading active accounts and all categories for the current workspace
+- `src/hooks/useTransactionReferenceData.test.tsx` — 8 tests
+- `src/pages/Transactions.test.tsx` — 6 tests
+
+**Files modified:**
+- `src/pages/Transactions.tsx` — rewritten from the static placeholder into a page shell wired to `useTransactionReferenceData`, with loading/error/foundational-empty states. No table, dialog, or button for a workflow that doesn't exist yet.
+
+**Deviation from this plan's original wording (Amount-entry model):** this Phase A's actual instructions (issued after this plan was written) required a stricter parsing contract than described above. Two changes from the text above:
+1. **New parser, not a wrap of `parseAmount`.** `parseAmountMagnitudeToMinorUnits` is a new, strict implementation rather than a wrapper around the existing `parseAmount` (`src/lib/format.ts`). `parseAmount` is a lenient best-effort parser written for account balances that always originate from validated Rust data (it silently coerces malformed input rather than rejecting it, and was — until this phase — unused by any page). A user-typed transaction amount needs real validation (reject empty, reject a leading `-`, reject more than two decimal places, reject thousands separators, reject garbage), which is a different contract, not a duplicate of the same logic. `formatMinorUnits`, by contrast, *is* a plain re-export of the existing `formatAmount` — formatting was not duplicated, only parsing needed new, stricter behavior.
+2. **No formatting-on-blur inside `AmountInput`.** The component is a plain controlled text field that stores and returns the raw string exactly as typed, with no internal parsing, normalization, or reformatting. Invalid text stays visible rather than being silently rewritten. Parsing and the create/edit form's blur/submit behavior are deferred to Phase B2, which will call `parseAmountMagnitudeToMinorUnits` and `applyTransactionDirection` explicitly.
+
+**Reference-data eligibility and sorting (Backend Change Rule check — no gap found):**
+- **Accounts:** `list_accounts_by_workspace` returns rows `ORDER BY id` (confirmed in `src-tauri/src/repositories/account.rs`), not name, so the hook filters to `is_active` accounts only (Product Decision 5 — archived accounts are not offered as a destination for a new transaction) and sorts the result alphabetically by name client-side, mirroring the precedent already established by `Accounts.tsx`'s own client-side sort.
+- **Categories:** `list_categories_by_workspace` already returns rows `ORDER BY category_type, name` (confirmed in `src-tauri/src/repositories/category.rs`) — already deterministic and already grouped by type, matching Product Decision 4. That order is passed through unchanged; it is not re-sorted client-side, per the "never override backend ordering" architecture constraint. `Category` has no `is_active` field at all (confirmed in `src-tauri/src/models/category.rs`), so there is no archived-category state to filter — every category returned is eligible, exactly as this plan's "Categories" section already documented.
+- No backend change was needed or made.
+
+**Date field decision confirmed:** no `DateInput` component was built. The existing `Input` component's `InputHTMLAttributes` spread already supports `<Input type="date" ... />` cleanly, matching the decision recorded in this plan's Phase A scope above. This will be exercised for the first time in Phase B2's create-transaction form.
+
+**Sidebar navigation:** verified already correct — `/transactions` in `Sidebar.tsx` and `App.tsx` already routed to the (previously placeholder) `Transactions` page. No changes were needed.
+
+**Test results:** 169/169 frontend tests passing (111 existing + 58 new), `npm run lint` clean, `npm run format:check` clean, `npm run build` succeeds. `cargo check` and 104/104 Rust tests pass, unchanged — confirms no backend code was touched.
+
+**Manual verification:** not performed. As with every prior Sprint 5 phase, no tooling exists in this environment to drive the native Tauri/WebView window — see the manual verification checklist reported alongside this phase's closeout for what a human pass should confirm.
 
 ---
 
