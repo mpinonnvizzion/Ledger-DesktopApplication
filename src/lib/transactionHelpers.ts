@@ -1,6 +1,12 @@
 import { formatAmount } from "./format";
 import type { Account, Category, Direction } from "@/types/domain";
 
+// Matches src-tauri/src/repositories/transaction.rs's MAX_DESCRIPTION_LENGTH
+// and MAX_NOTES_LENGTH exactly. Shared by CreateTransactionDialog and
+// EditTransactionDialog so the two forms cannot silently drift apart.
+export const MAX_DESCRIPTION_LENGTH = 500;
+export const MAX_NOTES_LENGTH = 2000;
+
 /**
  * Re-exported under a transaction-domain name. No new formatting logic is
  * introduced here - this is the same tested implementation used by the

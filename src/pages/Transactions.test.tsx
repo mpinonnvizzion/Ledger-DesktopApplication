@@ -19,16 +19,22 @@ vi.mock("@/hooks/useTransactionReferenceData", () => ({
 vi.mock("@/api/transactions", () => ({
   listTransactions: vi.fn(),
   createTransaction: vi.fn(),
+  updateTransaction: vi.fn(),
 }));
 
 import { useWorkspace } from "@/hooks/useWorkspace";
 import { useTransactionReferenceData } from "@/hooks/useTransactionReferenceData";
-import { listTransactions, createTransaction } from "@/api/transactions";
+import {
+  listTransactions,
+  createTransaction,
+  updateTransaction,
+} from "@/api/transactions";
 
 const mockUseWorkspace = vi.mocked(useWorkspace);
 const mockUseTransactionReferenceData = vi.mocked(useTransactionReferenceData);
 const mockListTransactions = vi.mocked(listTransactions);
 const mockCreateTransaction = vi.mocked(createTransaction);
+const mockUpdateTransaction = vi.mocked(updateTransaction);
 
 function workspaceValue(
   currentWorkspaceId: number | null,
@@ -479,7 +485,7 @@ describe("Transactions page — workspace change", () => {
 });
 
 describe("Transactions page — no CRUD controls or fake data", () => {
-  it("exposes no edit/delete controls (create exists as of Phase B2)", async () => {
+  it("exposes no delete controls (create/edit exist as of Phase B2/B3)", async () => {
     mockListTransactions.mockResolvedValue({
       transactions: [makeTransaction({})],
       total_count: 1,
@@ -488,7 +494,6 @@ describe("Transactions page — no CRUD controls or fake data", () => {
     render(<Transactions />);
 
     await screen.findByRole("table");
-    expect(screen.queryByRole("button", { name: /^edit/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
   });
 
@@ -525,6 +530,7 @@ describe("Transactions page — semantic table structure", () => {
       "Category",
       "Type",
       "Amount",
+      "Actions",
     ]);
   });
 
@@ -656,6 +662,114 @@ describe("Transactions page — New Transaction dialog wiring (Phase B2)", () =>
     expect(screen.queryByText("No transactions yet")).toBeNull();
     expect(
       screen.queryByRole("heading", { name: "New Transaction" }),
+    ).not.toBeInTheDocument();
+    expect(mockListTransactions).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("Transactions page — Edit dialog wiring (Phase B3)", () => {
+  it("shows an Edit action for each populated row", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({ id: 1, description: "Coffee" })],
+      total_count: 1,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    expect(
+      screen.getByRole("button", { name: "Edit transaction: Coffee" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no Edit action in the loading state", () => {
+    mockListTransactions.mockReturnValue(new Promise(() => {}));
+    render(<Transactions />);
+    expect(screen.queryByRole("button", { name: /^edit/i })).toBeNull();
+  });
+
+  it("shows no Edit action in the empty state", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [],
+      total_count: 0,
+    });
+    render(<Transactions />);
+    await screen.findByText("No transactions yet");
+    expect(screen.queryByRole("button", { name: /^edit/i })).toBeNull();
+  });
+
+  it("shows no Edit action in the error state", async () => {
+    mockListTransactions.mockRejectedValue(
+      '{"code":"database_error","message":"Something broke"}',
+    );
+    render(<Transactions />);
+    await screen.findByText("Something broke");
+    expect(screen.queryByRole("button", { name: /^edit/i })).toBeNull();
+  });
+
+  it("opens the correct transaction when Edit is clicked on a specific row", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [
+        makeTransaction({ id: 1, description: "First transaction" }),
+        makeTransaction({ id: 2, description: "Second transaction" }),
+      ],
+      total_count: 2,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Edit transaction: Second transaction",
+      }),
+    );
+
+    await screen.findByRole("heading", { name: "Edit Transaction" });
+    // CreateTransactionDialog (always mounted, currently closed) also has a
+    // "Description" field, so the query is scoped to the open Edit dialog -
+    // the same jsdom closed-<dialog>-visibility gotcha documented since
+    // Sprint 5 Phase B3.
+    const editDialog = screen.getByRole("dialog", { name: "Edit Transaction" });
+    expect(within(editDialog).getByLabelText("Description")).toHaveValue(
+      "Second transaction",
+    );
+  });
+
+  it("closes the dialog, refetches transactions, and shows updated data after a successful edit", async () => {
+    mockListTransactions
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 1, description: "Before edit" })],
+        total_count: 1,
+      })
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 1, description: "After edit" })],
+        total_count: 1,
+      });
+    mockUpdateTransaction.mockResolvedValue(
+      makeTransaction({ id: 1, description: "After edit" }),
+    );
+
+    render(<Transactions />);
+    await screen.findByText("Before edit");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Edit transaction: Before edit" }),
+    );
+    await screen.findByRole("heading", { name: "Edit Transaction" });
+    const editDialog = screen.getByRole("dialog", { name: "Edit Transaction" });
+
+    fireEvent.change(within(editDialog).getByLabelText("Description"), {
+      target: { value: "After edit" },
+    });
+    fireEvent.click(
+      within(editDialog).getByRole("button", { name: "Save Changes" }),
+    );
+
+    expect(await screen.findByText("After edit")).toBeInTheDocument();
+    expect(screen.queryByText("Before edit")).toBeNull();
+    expect(
+      screen.queryByRole("heading", { name: "Edit Transaction" }),
     ).not.toBeInTheDocument();
     expect(mockListTransactions).toHaveBeenCalledTimes(2);
   });

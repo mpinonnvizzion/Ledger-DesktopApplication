@@ -9,6 +9,8 @@ import { ErrorMessage } from "@/components/ui/ErrorMessage";
 import { createTransaction } from "@/api/transactions";
 import { parseCommandError } from "@/lib/errors";
 import {
+  MAX_DESCRIPTION_LENGTH,
+  MAX_NOTES_LENGTH,
   applyTransactionDirection,
   parseAmountMagnitudeToMinorUnits,
 } from "@/lib/transactionHelpers";
@@ -37,12 +39,6 @@ interface FormState {
   categoryId: string;
   notes: string;
 }
-
-// Matches src-tauri/src/repositories/transaction.rs's MAX_DESCRIPTION_LENGTH
-// and MAX_NOTES_LENGTH exactly, mirrored client-side per this phase's
-// explicit validation requirements.
-const MAX_DESCRIPTION_LENGTH = 500;
-const MAX_NOTES_LENGTH = 2000;
 
 /**
  * Today's date as a local `YYYY-MM-DD` string, using local `Date` accessors

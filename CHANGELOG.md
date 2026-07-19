@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 6 Phase B3 — 2026-07-19
+
+Transaction editing implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — that begins with Phase B4.
+
+### Added
+
+- **Edit Transaction workflow** (`src/components/transactions/EditTransactionDialog.tsx`)
+  - The transactions table gains an "Actions" column with a keyboard-accessible "Edit [description]" button per row (loading/empty/error states show no Edit action)
+  - Dialog form is prepopulated directly from the selected transaction: Direction derived from the amount's sign, Amount shown as a positive magnitude, Date/Description/Account/Category/Notes shown exactly as stored
+  - **Save Changes is disabled until at least one field is both valid and genuinely different** from the transaction's current (normalized) values, and re-disables if the user reverts back to the original values — comparisons use normalized values (parsed amount+direction, trimmed text), not raw strings, so retyping a numerically-equivalent amount does not spuriously enable Save
+  - Only the fields that actually changed are sent to `updateTransaction`; unchanged fields are omitted so the backend's own "omitted = leave unchanged" semantics apply
+  - Category and Notes use the verified three-state contract: omitted = unchanged, explicit `null` = cleared, a value = set — clearing either sends `null`, never `undefined` or an empty string
+  - If the transaction's current account is archived, it is shown pre-selected and labeled "(Archived)" so its other fields can still be edited without forcing an account change; other archived accounts remain excluded from the selector
+  - If the selected transaction disappears from the page after a refetch, or the workspace changes while the dialog is open, it closes itself safely
+  - Duplicate submission is prevented; API failures keep the dialog open, preserve every entered value, and show a sanitized message
+  - On success: the dialog closes, and `Transactions.tsx` canonically refetches the transaction list (reusing the existing retry mechanism) — no optimistic row mutation
+  - 40 new component tests plus 6 new integration tests in `Transactions.test.tsx`
+
+### Changed
+
+- `MAX_DESCRIPTION_LENGTH`/`MAX_NOTES_LENGTH` moved from `CreateTransactionDialog.tsx`-local constants to shared exports in `src/lib/transactionHelpers.ts`, so Create and Edit cannot silently drift apart on these limits. No behavior change.
+
+### Notes
+
+- No backend or schema changes. No new npm dependencies. No delete, transfer, import, or reconciliation code.
+- **No shared Create/Edit form component was extracted** — the two dialogs' semantics have diverged enough (three-state clearing, live change detection, archived-current-account handling exist only in Edit) that a shared abstraction would be more complex than the duplication it removes, mirroring the same conclusion already reached for `CreateAccountDialog`/`EditAccountDialog` in Sprint 5.
+- **Archived accounts are permitted for editing without restriction**, confirmed by direct inspection of `TransactionRepository::update`: the backend performs no `is_active` check when the account is left unchanged, and none beyond workspace-membership when it changes.
+- Account balance updates during edit were inspected, not modified: unchanged account + unchanged amount touches no balance; unchanged account + changed amount applies the delta directly; changed account reverses the old account's balance and applies the new amount to the new account — all atomic, all already covered by existing Rust tests.
+- Manual native-app verification was not performed — no tooling exists in this environment to drive the Tauri/WebView window, consistent with every prior phase.
+
 ## Sprint 6 Phase B2 — 2026-07-19
 
 Transaction creation implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No edit, delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — that begins with Phase B3.

@@ -1,7 +1,7 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** In Progress — Phase A (Transaction UI Foundation), Phase B1 (Read-Only Transaction List), and Phase B2 (Create Transaction) complete; Phase B3 (Edit Transaction) not started
-**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19, Phase B2 completed 2026-07-19)
+**Status:** In Progress — Phase A (Transaction UI Foundation), Phase B1 (Read-Only Transaction List), Phase B2 (Create Transaction), and Phase B3 (Edit Transaction) complete; Phase B4 (Delete Transaction) not started
+**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19, Phase B2 completed 2026-07-19, Phase B3 completed 2026-07-19)
 
 ---
 
@@ -467,6 +467,61 @@ createTransaction(
 **Review checkpoint:** the category/notes null-vs-omit contract is the single highest-risk detail in this phase and should be the specific focus of review (a silent bug here would look identical to success in casual testing — the field would just fail to clear).
 
 **Commit boundary:** one commit, scoped to Phase B3 only.
+
+#### Phase B3 Implementation Notes (2026-07-19)
+
+Transaction editing implemented. No delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — Phase B4 onward remain not started.
+
+**Files created:**
+- `src/components/transactions/EditTransactionDialog.tsx`
+- `src/components/transactions/EditTransactionDialog.test.tsx` — 40 tests
+
+**Files modified:**
+- `src/pages/Transactions.tsx` — Actions column with a per-row "Edit [transaction]" button, `editingTransactionId`/`showEditDialog` state, dialog wiring, canonical refetch on success (reuses the existing `retryToken` mechanism)
+- `src/pages/Transactions.test.tsx` — 2 Phase B1/B2-era assertions updated to reflect that editing now exists, 6 new integration tests
+- `src/lib/transactionHelpers.ts` — `MAX_DESCRIPTION_LENGTH`/`MAX_NOTES_LENGTH` promoted from a `CreateTransactionDialog`-local pair of constants to shared exports, so Create and Edit cannot silently drift apart on these limits
+- `src/components/transactions/CreateTransactionDialog.tsx` — imports the now-shared constants instead of defining its own copy; no behavior change
+
+**Shared-form extraction decision: rejected, dialogs kept separate.** Following this plan's own architecture constraints and the precedent already set by `CreateAccountDialog`/`EditAccountDialog` (Sprint 5: "the two dialogs' field sets have already diverged... in a way that would make a shared abstraction more complex than the duplication it would remove"), `EditTransactionDialog` is a separate, purpose-built component. The two dialogs' *field markup* looks similar, but their semantics have genuinely diverged: Edit needs three-state category/notes clearing (Create only needs two-state), live change detection driving a disabled Save button (Create has no equivalent), and archived-current-account handling (a case Create never encounters, since a brand-new transaction has no "current" account to preserve). Only the two numeric constants above were shared; no shared form component was extracted.
+
+**Exact `updateTransaction` contract used** (verified directly against `src-tauri/src/models/transaction.rs`, `src-tauri/src/commands/transaction.rs`, and `src/api/transactions.ts`):
+```
+updateTransaction(
+  id: number,
+  accountId?: number,
+  categoryId?: number | null,   // three states: undefined = unchanged, null = clear, number = set
+  amountMinor?: number,
+  description?: string,          // two states only: undefined = unchanged, string = set (no null/clear)
+  date?: string,
+  notes?: string | null,         // three states: undefined = unchanged, null = clear, string = set
+  status?: TransactionStatus,    // never sent by this dialog
+): Promise<Transaction>
+```
+Confirmed by direct inspection of `TransactionRepository::update`: `account_id`, `amount_minor`, `description`, `date` are single `Option<T>` (omitted = keep existing); `category_id` and `notes` are `Option<Option<T>>` at the Rust struct level, which Tauri's per-argument binding resolves into the three-state TS shape above (key absent from the IPC call → outer `None`/unchanged; key present with value `null` → `Some(None)`/clear; key present with a value → `Some(Some(v))`/set).
+
+**Deviation from this plan's original wording, discovered during implementation:** the actual Phase B3 instructions (issued after this plan was written) required the opposite submission style from what this section originally described. Two changes:
+1. **Only changed fields are sent, not a "complete payload."** This section's original text said `account_id`/`amount_minor`/`description`/`date` are "always sent as their current (possibly unchanged) value... mirroring the 'complete payload' style already established for account edits." The actual instructions required per-field change detection with each unchanged field omitted (`undefined`) from the call — closer to the *minimal*-diff style than the "complete payload" style. Implemented as a single normalization pass (magnitude/direction → signed amount, trimmed description, etc.) computed once per render and reused for both the Save-button-enablement check and the submitted payload, so the two can never disagree.
+2. **Dirty-state tracking now exists and gates Save.** This section originally said "No dirty-state tracking — submitting unchanged values is safe and idempotent." The actual instructions required the opposite: Save Changes is `disabled` until at least one field is both valid and different from the transaction's current (normalized) value, and re-disables if the user reverts back to the original values. Submitting unchanged values was never tested as "safe" under this design since the Save button prevents that submission from happening at all.
+
+**Change-detection normalization (avoids the "different string, same value" trap):** comparisons never use raw form strings directly for the amount field — `form.amount` is parsed via `parseAmountMagnitudeToMinorUnits` and re-signed via `applyTransactionDirection` before comparing against `transaction.amount_minor`, so re-typing a numerically-equivalent string (e.g. baseline `"42.50"` retyped as `"42.5"`) correctly leaves Save disabled. Description and notes are trimmed before comparison. Category and notes compare against `transaction.category_id ?? null` / `transaction.notes ? transaction.notes : null` so "Uncategorized"/"blank" compare correctly against a `null` baseline.
+
+**Category clearing semantics:** selecting "Uncategorized" when the transaction currently has a category sends `categoryId: null` explicitly (verified via `mock.calls[0][2]` in tests, not just an equality assertion, to guarantee it is literally `null` and not `undefined` or `""`). Selecting the same category as before, or leaving Uncategorized as Uncategorized, sends `undefined` (omitted, "unchanged").
+
+**Notes clearing semantics:** identical three-state pattern — blanking a populated Notes field sends `notes: null`; leaving it unchanged sends `undefined`; entering new text sends the trimmed string.
+
+**Archived-account behavior (Scenario A confirmed, not ambiguous):** `TransactionRepository::update` performs **no `is_active` check anywhere** — not when the account is left unchanged (the `if new_account_id != existing.account_id` branch is skipped entirely, so no account lookup/validation happens at all in that case) and not when reassigning to a different account (the only check is workspace membership, identical to create's own permissiveness already documented in Phase A/B1/B2). This directly confirms Scenario A from the task instructions ("the backend allows the current archived account to remain"). Implementation: `EditTransactionDialog` receives `accountsById` (the same unfiltered historical-lookup map `useTransactionReferenceData` already exposed for the read-only table) and, if the transaction's current account is archived, prepends it to the Account `<Select>`'s options labeled `"[name] (Archived)"`, pre-selected, alongside a one-line explanatory note. Saving other fields with the archived account left in place sends no `accountId` at all (unchanged → omitted) and succeeds, since the backend's unchanged-account path never validates `is_active`. Other archived accounts (not the transaction's own) are never listed, matching Product Decision 5.
+
+**Backend balance behavior (inspected, not modified — `TransactionRepository::update`):**
+- **Account unchanged, amount unchanged:** no balance `UPDATE` executes at all — a description/date/category/notes-only edit never touches any account's balance.
+- **Account unchanged, amount changed:** a single `UPDATE accounts SET balance = balance + (new_amount - existing_amount)` — a direct delta application, not an explicit reverse-then-reapply (mathematically identical, one statement instead of two).
+- **Account changed:** two statements in the same transaction — `balance -= existing.amount_minor` on the *old* account, then `balance += new_amount` on the *new* account. This is a true reversal-then-reapplication, and both updates are atomic with each other and with the row update.
+- **Currency plays no role** in any of this arithmetic, matching create's behavior.
+- **Failure at any point rolls back everything** — the whole operation (both balance updates, if two, plus the row update) happens inside one `unchecked_transaction()`, committed together only at the end; nothing partially commits.
+- This is already covered by existing Rust tests (`update_amount_adjusts_balance`, `update_account_moves_balance`, and the `assert_balance_consistent` helper used throughout `repositories/transaction.rs`'s test module). No new Rust test was added, and no Rust code was touched.
+
+**Test results:** 278/278 frontend tests passing (net +46 over Phase B2's 232: 40 new in `EditTransactionDialog.test.tsx`, 6 new integration tests in `Transactions.test.tsx`, 2 Phase B1/B2-era assertions updated in place rather than added/removed since editing now legitimately exists), `npm run lint` clean, `npm run format:check` clean, `npm run build` succeeds. `cargo check` and 104/104 Rust tests pass, unchanged — confirms no backend code was touched.
+
+**Manual verification:** not performed. As with every prior phase, no tooling exists in this environment to drive the native Tauri/WebView window — see the manual verification checklist reported alongside this phase's closeout.
 
 ---
 
