@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 6 Phase B1 — 2026-07-19
+
+Read-only transaction list implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No create, edit, delete, filter, search, or pagination-control workflow exists yet — that begins with Phase B2.
+
+### Added
+
+- **Transaction history table** (`src/pages/Transactions.tsx`) — fetches the first page of transactions (`listTransactions({ workspaceId, limit: 50 })`) and renders them in the backend's own `date DESC, id DESC` order (never re-sorted client-side). Semantic `<table>` with columns Date, Description, Account, Category, Type, Amount. Income/Expense is shown as an explicit "Type" column and as an explicit `+`/`-` sign in the Amount column, not by color alone. Uncategorized transactions and unresolvable account/category references render deterministic fallback text ("Uncategorized" / "Unknown account") instead of blank cells or a crash. No row actions, no fake data, no card-based rows — horizontal scrolling handles narrow widths instead.
+  - A plain informational sentence ("Showing the N most recent of M transactions") appears when the backend's `total_count` exceeds the number of rows shown — not an interactive pagination control, just an honest note that the list is truncated.
+- **Historical reference-data lookup** (`src/hooks/useTransactionReferenceData.ts`) — extended with `accountsById`/`categoriesById`, two unfiltered lookup maps built from the same already-fetched account/category lists (no new API call). This is additive: the existing `accounts` field (active-only, for future create-transaction selectors) and `categories` are unchanged. `accountsById` specifically includes archived accounts, so a transaction on an archived account still displays its real name instead of "Unknown account". 2 new tests.
+- 21 net new tests in `src/pages/Transactions.test.tsx` (27 total, up from the 6 Phase A shell tests it replaced).
+
+### Notes
+
+- No backend or schema changes. No new npm dependencies. No account filter, category filter, date-range filter, search, sorting, or pagination controls — deferred to a later, reviewed phase.
+- **Partial reference-data failure is non-blocking:** if transactions load successfully but account/category reference data fails to load, the table still renders (using the deterministic fallback labels above) with a non-destructive warning banner, rather than replacing the whole page with an error. A transaction-fetch failure, by contrast, is blocking (full-page error with retry), since there is no meaningful table to show without transaction data. A single retry action reloads both.
+- **Currency formatting is a documented, pre-existing simplification, not a new gap introduced here:** account currencies can technically differ within a workspace (confirmed in `src-tauri/src/repositories/account.rs`), but no page in this app — including this one — renders a currency symbol/code; every amount is prefixed with a hardcoded `"$"`, matching `Accounts.tsx`'s existing convention and Sprint 6's own Product Decision 9 (no multi-currency UI; see ADR 0008). Flagged for visibility, not treated as a Phase B1 defect.
+- Manual native-app verification was not performed — no tooling exists in this environment to drive the Tauri/WebView window, consistent with every prior phase.
+
 ## Sprint 6 Phase A — 2026-07-19
 
 Transaction UI foundation implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No transaction list, create/edit/delete workflow, filtering, search, or pagination exists yet — that begins with Phase B1.

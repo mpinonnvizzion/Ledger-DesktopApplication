@@ -1,7 +1,7 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** In Progress — Phase A (Transaction UI Foundation) complete; Phase B1 (Read-Only Transaction List) not started
-**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19)
+**Status:** In Progress — Phase A (Transaction UI Foundation) and Phase B1 (Read-Only Transaction List) complete; Phase B2 (Create Transaction) not started
+**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19)
 
 ---
 
@@ -316,6 +316,43 @@ Transaction UI foundation implemented. No transaction list, dialog, or mutation 
 **Review checkpoint:** read-only, no mutation risk — safe to review and merge independently of B2–B4.
 
 **Commit boundary:** one commit, scoped to Phase B1 only.
+
+#### Phase B1 Implementation Notes (2026-07-19)
+
+Read-only transaction list implemented. No create, edit, delete, filter, search, or pagination-control workflow exists yet — Phase B2 onward remain not started.
+
+**Files created:**
+- `src/pages/Transactions.test.tsx` — rewritten from the Phase A shell test into the full B1 test suite (27 tests)
+
+**Files modified:**
+- `src/pages/Transactions.tsx` — rewritten from the Phase A shell into the read-only transaction table described below
+- `src/hooks/useTransactionReferenceData.ts` — extended with `accountsById`/`categoriesById` (see "Historical reference-data strategy" below); the existing `accounts`/`categories` fields and their 8 Phase A tests are unchanged
+- `src/hooks/useTransactionReferenceData.test.tsx` — 2 new tests for the extension
+
+**Deviation from this plan's original wording (Scope):** the actual instructions issued for this phase (after this plan was written) explicitly excluded the account filter and pagination controls this section originally scoped in. Both are deferred to a later, reviewed phase rather than built now:
+- **No account filter.** The single-select account filter described above is not built. All transactions in the workspace's first page are shown.
+- **No pagination controls.** Only the backend's first page (`limit: 50`, `offset: 0`, its own default) is fetched — no Previous/Next buttons. `total_count` is still captured from the response and, when it exceeds the number of rows shown, a plain informational sentence ("Showing the N most recent of M transactions") is displayed so the truncation is never silently invisible — this is not an interactive control, just a preserved-for-later piece of state surfaced honestly.
+
+**Exact backend list contract used:** `listTransactions({ workspaceId, limit: 50 })` (`src/api/transactions.ts` → `list_transactions` Tauri command). No `accountId`, `categoryId`, `dateFrom`, `dateTo`, `search`, `amountMin`, `amountMax`, `direction`, or `offset` are passed. Response is `{ transactions: Transaction[], total_count: number }`; `transactions` is rendered in exactly the order returned (backend default `ORDER BY date DESC, id DESC`, confirmed already covered by the existing Rust test `list_default_ordering` — no new Rust test was needed).
+
+**Table columns (final):** Date, Description, Account, Category, Type, Amount — matching this plan's recommendation exactly. Notes is excluded, as originally scoped ("no workflow here reads or sets it"). `Status` is likewise excluded, as originally scoped.
+
+**Amount presentation:** uses `formatSignedAmount` (Phase A helper) prefixed with `$`, e.g. `$+42.50` / `$-15.00`, mirroring `Accounts.tsx`'s existing `` `$${formatAmount(...)}` `` convention exactly (dollar sign immediately before whatever sign the formatted number already carries) rather than inventing a new "$" placement rule. The sign character itself is the accessible source of truth for direction (per this plan's own Accessibility requirement above); `amountDisplayClass` (green/red) is a secondary color cue only. A zero amount (not reachable in practice — the backend's `CHECK(amount_minor != 0)` prevents it) renders deterministically as `$0.00`, never `-$0.00` (verified by both `transactionHelpers.test.ts`'s existing `applyTransactionDirection` zero test and a new page-level test).
+
+**Historical reference-data strategy:** `useTransactionReferenceData` was extended (not replaced) with two new fields, `accountsById: Map<number, Account>` and `categoriesById: Map<number, Category>`, built from the *same* already-fetched account/category lists (no additional API call). This is a deliberate split from the hook's existing `accounts` field: `accounts` stays active-only (Product Decision 5 — correct for a future create-transaction selector) and is untouched; `accountsById` is unfiltered, so an archived account's historical transactions still resolve to its real name instead of "Unknown account". `categoriesById` mirrors `categories`, which was already unfiltered (categories have no archived state). Missing/unresolvable references (an id with no matching entry in the map) fall back to the existing Phase A helpers' deterministic text (`accountDisplayLabel` → "Unknown account", `categoryDisplayLabel` → "Uncategorized") rather than crashing or rendering blank.
+
+**Currency-formatting strategy (contract gap, documented not fixed):** `CreateAccountInput.currency` (`src-tauri/src/repositories/account.rs`) confirms accounts *can* be created with a currency different from their workspace's default — currency is not actually single-valued per workspace at the schema level. However, neither `formatAmount`/`formatMinorUnits` nor any existing page (`Accounts.tsx`) renders a currency symbol or code at all — every amount in the app today is prefixed with a hardcoded `"$"` regardless of the record's actual `currency` field. This is a pre-existing, codebase-wide simplification, not something introduced by this phase — it matches this plan's own Product Decision 9 ("no multi-currency UI... an existing, codebase-wide simplification, see ADR 0008's 'Future Considerations: Multi-Currency Support'"). Phase B1 continues that exact existing pattern (hardcoded `"$"`) rather than inventing new currency-symbol-lookup logic. Flagged here per instruction, not treated as a Phase B1 blocker: a true multi-currency-aware UI is future work, not a defect in this phase.
+
+**Loading/empty/error behavior:**
+- **Loading:** a single combined loading state (`transactionsLoading || referenceLoading`) is shown until both the transaction fetch and the reference-data fetch complete, so labels are never rendered with a stale/empty lookup map. No empty-state text is shown before this resolves.
+- **Empty:** "No transactions yet" with no create button, no import/sync language — room is explicitly left for Phase B2 to add a creation entry point later.
+- **Error (transactions fetch fails):** blocking, full-page `PageErrorState` with retry — there is no meaningful table to show without transaction data.
+- **Partial failure (transactions succeed, reference data fails):** non-blocking. The table still renders using the deterministic fallback labels described above, with a dismissal-free warning banner (`ErrorMessage`, `role="alert"`) above the table explaining that some names may be placeholders. This was a deliberate choice between the two options this plan's parent instructions offered — chosen because blocking the entire transaction history behind a failure in supplementary label data would contradict the local-first principle of not letting a secondary data source hide the user's primary financial record.
+- **Retry:** a single retry action re-triggers both the transaction fetch and the reference-data fetch (`retryReferenceData()` plus a local retry-token bump), regardless of which one is currently failing.
+
+**Test results:** 192/192 frontend tests passing (net +23 over Phase A's 169: `Transactions.test.tsx` grew from 6 Phase A shell tests to 27 B1 tests, a net +21; `useTransactionReferenceData.test.tsx` gained 2 tests for the new lookup maps), `npm run lint` clean, `npm run format:check` clean, `npm run build` succeeds. `cargo check` and 104/104 Rust tests pass, unchanged — confirms no backend code was touched.
+
+**Manual verification:** not performed. As with every prior phase, no tooling exists in this environment to drive the native Tauri/WebView window — see the manual verification checklist reported alongside this phase's closeout.
 
 ---
 

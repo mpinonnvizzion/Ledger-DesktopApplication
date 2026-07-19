@@ -8,6 +8,8 @@ import type { Account, Category } from "@/types/domain";
 interface TransactionReferenceData {
   accounts: Account[];
   categories: Category[];
+  accountsById: Map<number, Account>;
+  categoriesById: Map<number, Category>;
   loading: boolean;
   error: string | null;
   retry: () => void;
@@ -40,11 +42,28 @@ interface TransactionReferenceData {
  * architecture constraint. Categories have no `is_active`/archival concept
  * at all (confirmed against `src-tauri/src/models/category.rs`), so there
  * is nothing to filter out.
+ *
+ * `accountsById` / `categoriesById`: Sprint 6 Phase B1 (the read-only
+ * transaction list) needs to resolve labels for *historical* transactions,
+ * which is a different eligibility rule than the `accounts` selector above:
+ * an archived account must still resolve to its name for a past transaction
+ * even though it is correctly excluded from `accounts` (the "eligible for a
+ * new selection" list - Product Decision 5). Rather than weaken `accounts`
+ * itself, this hook exposes a second, unfiltered lookup built from the same
+ * already-fetched account list (no extra API call) - `accountsById`
+ * includes archived accounts, `categoriesById` mirrors `categories` (which
+ * was already unfiltered) as a lookup for convenience.
  */
 export function useTransactionReferenceData(): TransactionReferenceData {
   const { currentWorkspaceId } = useWorkspace();
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [accountsById, setAccountsById] = useState<Map<number, Account>>(
+    new Map(),
+  );
+  const [categoriesById, setCategoriesById] = useState<Map<number, Category>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryToken, setRetryToken] = useState(0);
@@ -77,6 +96,12 @@ export function useTransactionReferenceData(): TransactionReferenceData {
           .sort((a, b) => a.name.localeCompare(b.name));
         setAccounts(activeAccountsSorted);
         setCategories(categoryList);
+        setAccountsById(
+          new Map(accountList.map((account) => [account.id, account])),
+        );
+        setCategoriesById(
+          new Map(categoryList.map((category) => [category.id, category])),
+        );
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(parseCommandError(err).message);
@@ -94,5 +119,13 @@ export function useTransactionReferenceData(): TransactionReferenceData {
     setRetryToken((token) => token + 1);
   }
 
-  return { accounts, categories, loading, error, retry };
+  return {
+    accounts,
+    categories,
+    accountsById,
+    categoriesById,
+    loading,
+    error,
+    retry,
+  };
 }

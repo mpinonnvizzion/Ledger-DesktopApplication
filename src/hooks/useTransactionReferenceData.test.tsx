@@ -70,8 +70,15 @@ function makeCategory(overrides: Partial<Category>): Category {
 }
 
 function Harness() {
-  const { accounts, categories, loading, error, retry } =
-    useTransactionReferenceData();
+  const {
+    accounts,
+    categories,
+    accountsById,
+    categoriesById,
+    loading,
+    error,
+    retry,
+  } = useTransactionReferenceData();
 
   if (loading) return <div>Loading…</div>;
   if (error)
@@ -89,6 +96,12 @@ function Harness() {
       ))}
       {categories.map((c) => (
         <li key={`category-${c.id}`}>category:{c.name}</li>
+      ))}
+      {[...accountsById.values()].map((a) => (
+        <li key={`accountById-${a.id}`}>accountById:{a.name}</li>
+      ))}
+      {[...categoriesById.values()].map((c) => (
+        <li key={`categoryById-${c.id}`}>categoryById:{c.name}</li>
       ))}
     </ul>
   );
@@ -170,6 +183,38 @@ describe("useTransactionReferenceData — success", () => {
 
     await screen.findByText("account:Active Account");
     expect(screen.queryByText("account:Archived Account")).toBeNull();
+  });
+});
+
+describe("useTransactionReferenceData — historical lookup maps", () => {
+  it("accountsById includes archived accounts (unlike the active-only accounts selector)", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([
+      makeAccount({ id: 1, name: "Active Account", is_active: true }),
+      makeAccount({ id: 2, name: "Archived Account", is_active: false }),
+    ]);
+    mockListCategoriesByWorkspace.mockResolvedValue([]);
+
+    render(<Harness />);
+
+    await screen.findByText("accountById:Active Account");
+    expect(
+      screen.getByText("accountById:Archived Account"),
+    ).toBeInTheDocument();
+    // The active-only selector list must remain unaffected.
+    expect(screen.queryByText("account:Archived Account")).toBeNull();
+  });
+
+  it("categoriesById includes every category", async () => {
+    mockListAccountsByWorkspace.mockResolvedValue([]);
+    mockListCategoriesByWorkspace.mockResolvedValue([
+      makeCategory({ id: 1, name: "Groceries" }),
+    ]);
+
+    render(<Harness />);
+
+    expect(
+      await screen.findByText("categoryById:Groceries"),
+    ).toBeInTheDocument();
   });
 });
 

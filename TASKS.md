@@ -345,7 +345,7 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 **Implementation Plan:** [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md) — ratified as the ordinary plan for Sprint 6 by the 2026-07-19 Product Owner decision (see the Sprint 5 note above); its own header's "naming conflict" warning is now resolved.
 
 - [x] Phase A: Transaction UI foundation (`AmountInput`, direction/presentation helpers, reference-data loading, page shell) — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase A Implementation Notes
-- [ ] Phase B1: Read-only transaction list (table, account filter, pagination)
+- [x] Phase B1: Read-only transaction list (table, historical account/category label resolution) — completed 2026-07-19; account filter and pagination controls deferred to a later phase per this phase's actual scope; see `docs/sprint-notes/sprint-6.md`'s Phase B1 Implementation Notes
 - [ ] Phase B2: Create transaction
 - [ ] Phase B3: Edit transaction
 - [ ] Phase B4: Delete transaction
