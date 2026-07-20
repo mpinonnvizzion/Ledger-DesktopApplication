@@ -6,6 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 6 Complete (Phase B4) — 2026-07-19
+
+Transaction deletion implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. This is the last of the four core transaction workflows — with B4 done, **Sprint 6 (Transactions UI) is complete**; a Phase B5 polish phase was evaluated and determined unnecessary (see `docs/sprint-notes/sprint-6.md`'s "Sprint 6 Closeout" section). Milestone 3 (Core Finance Features) remains In Progress — Sprint 7 (Categories UI) and Sprint 8 (Dashboard) are still unstarted.
+
+### Added
+
+- **Delete Transaction workflow** (`src/components/transactions/DeleteTransactionDialog.tsx`)
+  - The transactions table's Actions column gains a keyboard-accessible "Delete [description]" button alongside Edit (loading/empty/blocking-error states show no Delete action, matching Edit's convention)
+  - Confirmation dialog clearly states the deletion is permanent and cannot be undone, and shows a summary (Description, sign-formatted Amount, Type, Account, Date) built entirely from existing transaction presentation helpers — no new formatting convention
+  - Account label resolution uses the same historical-lookup map (`accountsById`) the read-only table uses, so an archived account's name still resolves correctly in the confirmation
+  - Duplicate confirmation clicks are prevented; Cancel and Delete Transaction are disabled while the request is in flight; Escape/outside-click are blocked while deleting (`ConfirmDialog`'s existing `preventClose` behavior)
+  - On failure: dialog stays open, the transaction summary remains visible, and a sanitized error appears
+  - On success: dialog closes, and `Transactions.tsx` canonically refetches the transaction list (reusing the existing retry mechanism) — no optimistic row removal. Deleting the last remaining transaction transitions the page to the existing empty state with no new code required
+  - 21 new component tests plus 11 new integration tests in `Transactions.test.tsx`
+
+### Changed
+
+- `ConfirmDialog` (`src/components/ui/ConfirmDialog.tsx`) — added an optional `children?: ReactNode` slot, rendered between the message and the error, so a structured summary can appear inside the dialog. Additive and backward compatible; all 8 existing `ConfirmDialog` tests pass unmodified.
+
+### Added (backend)
+
+- One narrowly scoped Rust test, `delete_reverses_balance_for_expense` (`src-tauri/src/repositories/transaction.rs`), covering the negative-amount (expense) deletion case — the existing `delete_reverses_balance` test only covered a positive (income) amount. No backend behavior changed; this is test-only.
+
+### Notes
+
+- No backend or schema changes beyond the additive test above. No new npm dependencies. No bulk delete, undo, archive/restore, or transfer-deletion code.
+- **`deleteTransaction(id: number): Promise<void>`** — a single required argument, no returned data, verified directly against the Rust command and repository.
+- **Backend balance reversal (inspected, not modified):** `TransactionRepository::delete` performs `balance = balance - amount_minor` and the row `DELETE` inside one atomic SQLite transaction, committed together — deleting an expense (negative `amount_minor`) increases the balance by the expense magnitude; deleting income (positive `amount_minor`) decreases it by the income magnitude. Currency plays no role. No `is_active` check exists anywhere in the delete path, so deleting a transaction on an archived account is fully supported, matching create's and update's already-documented permissiveness.
+- Manual native-app verification was not performed — no tooling exists in this environment to drive the Tauri/WebView window, consistent with every prior phase.
+
 ## Sprint 6 Phase B3 — 2026-07-19
 
 Transaction editing implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. No delete, filter, search, pagination-control, transfer, import, or reconciliation workflow exists yet — that begins with Phase B4.

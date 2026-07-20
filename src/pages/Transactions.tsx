@@ -19,6 +19,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { CreateTransactionDialog } from "@/components/transactions/CreateTransactionDialog";
 import { EditTransactionDialog } from "@/components/transactions/EditTransactionDialog";
+import { DeleteTransactionDialog } from "@/components/transactions/DeleteTransactionDialog";
 
 // Matches the backend's own DEFAULT_LIMIT (src-tauri/src/repositories/transaction.rs).
 // Passed explicitly for clarity rather than relying on the backend default silently.
@@ -26,9 +27,9 @@ const PAGE_SIZE = 50;
 
 /**
  * Sprint 6 Phase B1 (read-only history) + Phase B2 (create) + Phase B3
- * (edit). Fetches the first page of transactions in the backend's own
- * `date DESC, id DESC` order (never re-sorted client-side) and resolves
- * account/category labels for display. No delete, filter, search, or
+ * (edit) + Phase B4 (delete). Fetches the first page of transactions in the
+ * backend's own `date DESC, id DESC` order (never re-sorted client-side)
+ * and resolves account/category labels for display. No filter, search, or
  * pagination controls exist yet - see docs/sprint-notes/sprint-6.md for the
  * full phase plan.
  */
@@ -54,6 +55,10 @@ export default function Transactions() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingTransactionId, setEditingTransactionId] = useState<
+    number | null
+  >(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deletingTransactionId, setDeletingTransactionId] = useState<
     number | null
   >(null);
 
@@ -132,12 +137,33 @@ export default function Transactions() {
     setRetryToken((token) => token + 1);
   }
 
+  function handleDeleteClick(transaction: Transaction) {
+    setDeletingTransactionId(transaction.id);
+    setShowDeleteDialog(true);
+  }
+
+  function handleDeleteClose() {
+    setShowDeleteDialog(false);
+  }
+
+  // Canonical refetch after a successful delete - same mechanism as create
+  // and edit, no manual splice of the deleted row from local state. A
+  // one-row table naturally transitions to the empty state once the
+  // refetched `transactions` array comes back empty.
+  function handleTransactionDeleted() {
+    setShowDeleteDialog(false);
+    setRetryToken((token) => token + 1);
+  }
+
   // Re-derived from the current `transactions` array on every render (not
   // held as a separate object reference captured at click-time), so a
   // refetch that no longer includes this id naturally yields `null` -
-  // EditTransactionDialog closes itself safely when this happens while open.
+  // EditTransactionDialog/DeleteTransactionDialog close themselves safely
+  // when this happens while open.
   const editingTransaction =
     transactions.find((t) => t.id === editingTransactionId) ?? null;
+  const deletingTransaction =
+    transactions.find((t) => t.id === deletingTransactionId) ?? null;
 
   const loading = transactionsLoading || referenceLoading;
 
@@ -167,8 +193,8 @@ export default function Transactions() {
         <div>
           <h2 className="text-2xl font-semibold text-gray-900">Transactions</h2>
           <p className="mt-1 text-sm text-gray-600">
-            Review income and expenses across your accounts. This page cannot
-            yet delete transactions.
+            Review, create, edit, and delete income and expenses across your
+            accounts.
           </p>
         </div>
         {canCreateTransaction && (
@@ -293,15 +319,26 @@ export default function Transactions() {
                             {`$${formatSignedAmount(transaction.amount_minor)}`}
                           </td>
                           <td className="px-4 py-3 text-right text-sm">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => handleEditClick(transaction)}
-                              aria-label={`Edit transaction: ${transaction.description}`}
-                            >
-                              Edit
-                            </Button>
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                type="button"
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleEditClick(transaction)}
+                                aria-label={`Edit transaction: ${transaction.description}`}
+                              >
+                                Edit
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="danger"
+                                size="sm"
+                                onClick={() => handleDeleteClick(transaction)}
+                                aria-label={`Delete transaction: ${transaction.description}`}
+                              >
+                                Delete
+                              </Button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -342,6 +379,17 @@ export default function Transactions() {
           accountsById={accountsById}
           onClose={handleEditClose}
           onUpdated={handleTransactionUpdated}
+        />
+      )}
+
+      {currentWorkspaceId !== null && (
+        <DeleteTransactionDialog
+          open={showDeleteDialog}
+          workspaceId={currentWorkspaceId}
+          transaction={deletingTransaction}
+          accountsById={accountsById}
+          onClose={handleDeleteClose}
+          onDeleted={handleTransactionDeleted}
         />
       )}
     </div>

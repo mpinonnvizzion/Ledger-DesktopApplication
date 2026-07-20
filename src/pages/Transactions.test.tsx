@@ -20,6 +20,7 @@ vi.mock("@/api/transactions", () => ({
   listTransactions: vi.fn(),
   createTransaction: vi.fn(),
   updateTransaction: vi.fn(),
+  deleteTransaction: vi.fn(),
 }));
 
 import { useWorkspace } from "@/hooks/useWorkspace";
@@ -28,6 +29,7 @@ import {
   listTransactions,
   createTransaction,
   updateTransaction,
+  deleteTransaction,
 } from "@/api/transactions";
 
 const mockUseWorkspace = vi.mocked(useWorkspace);
@@ -35,6 +37,7 @@ const mockUseTransactionReferenceData = vi.mocked(useTransactionReferenceData);
 const mockListTransactions = vi.mocked(listTransactions);
 const mockCreateTransaction = vi.mocked(createTransaction);
 const mockUpdateTransaction = vi.mocked(updateTransaction);
+const mockDeleteTransaction = vi.mocked(deleteTransaction);
 
 function workspaceValue(
   currentWorkspaceId: number | null,
@@ -485,7 +488,7 @@ describe("Transactions page — workspace change", () => {
 });
 
 describe("Transactions page — no CRUD controls or fake data", () => {
-  it("exposes no delete controls (create/edit exist as of Phase B2/B3)", async () => {
+  it("exposes no filter, search, pagination, or transfer controls (create/edit/delete exist as of Phase B2/B3/B4)", async () => {
     mockListTransactions.mockResolvedValue({
       transactions: [makeTransaction({})],
       total_count: 1,
@@ -494,7 +497,10 @@ describe("Transactions page — no CRUD controls or fake data", () => {
     render(<Transactions />);
 
     await screen.findByRole("table");
-    expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
+    expect(screen.queryByRole("searchbox")).toBeNull();
+    expect(screen.queryByRole("button", { name: /^next/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^previous/i })).toBeNull();
+    expect(screen.queryByText(/transfer/i)).toBeNull();
   });
 
   it("renders only backend-provided rows, never fabricated data", async () => {
@@ -772,5 +778,250 @@ describe("Transactions page — Edit dialog wiring (Phase B3)", () => {
       screen.queryByRole("heading", { name: "Edit Transaction" }),
     ).not.toBeInTheDocument();
     expect(mockListTransactions).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("Transactions page — Delete dialog wiring (Phase B4)", () => {
+  it("shows a Delete action for each populated row", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({ id: 1, description: "Coffee" })],
+      total_count: 1,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    expect(
+      screen.getByRole("button", { name: "Delete transaction: Coffee" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no Delete action in the loading state", () => {
+    mockListTransactions.mockReturnValue(new Promise(() => {}));
+    render(<Transactions />);
+    expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
+  });
+
+  it("shows no Delete action in the empty state", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [],
+      total_count: 0,
+    });
+    render(<Transactions />);
+    await screen.findByText("No transactions yet");
+    expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
+  });
+
+  it("shows no Delete action in the blocking error state", async () => {
+    mockListTransactions.mockRejectedValue(
+      '{"code":"database_error","message":"Something broke"}',
+    );
+    render(<Transactions />);
+    await screen.findByText("Something broke");
+    expect(screen.queryByRole("button", { name: /^delete/i })).toBeNull();
+  });
+
+  it("keeps Edit present alongside Delete", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({ id: 1, description: "Coffee" })],
+      total_count: 1,
+    });
+    render(<Transactions />);
+    await screen.findByRole("table");
+    expect(
+      screen.getByRole("button", { name: "Edit transaction: Coffee" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete transaction: Coffee" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no bulk-selection UI", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({})],
+      total_count: 1,
+    });
+    render(<Transactions />);
+    await screen.findByRole("table");
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.queryByText(/delete all/i)).toBeNull();
+  });
+
+  it("opens the correct transaction when Delete is clicked on a specific row", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [
+        makeTransaction({ id: 1, description: "First transaction" }),
+        makeTransaction({ id: 2, description: "Second transaction" }),
+      ],
+      total_count: 2,
+    });
+
+    render(<Transactions />);
+    await screen.findByRole("table");
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: "Delete transaction: Second transaction",
+      }),
+    );
+
+    await screen.findByRole("heading", { name: "Delete transaction?" });
+    const deleteDialog = screen.getByRole("dialog", {
+      name: "Delete transaction?",
+    });
+    expect(
+      within(deleteDialog).getByText("Second transaction"),
+    ).toBeInTheDocument();
+  });
+
+  it("closes the dialog, refetches, and the row disappears after a successful delete", async () => {
+    mockListTransactions
+      .mockResolvedValueOnce({
+        transactions: [
+          makeTransaction({ id: 1, description: "Deleted soon" }),
+          makeTransaction({ id: 2, description: "Stays" }),
+        ],
+        total_count: 2,
+      })
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 2, description: "Stays" })],
+        total_count: 1,
+      });
+    mockDeleteTransaction.mockResolvedValue(undefined);
+
+    render(<Transactions />);
+    await screen.findByText("Deleted soon");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Delete transaction: Deleted soon" }),
+    );
+    await screen.findByRole("heading", { name: "Delete transaction?" });
+    const deleteDialog = screen.getByRole("dialog", {
+      name: "Delete transaction?",
+    });
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", {
+        name: "Delete Transaction",
+      }),
+    );
+
+    await waitFor(() => expect(screen.queryByText("Deleted soon")).toBeNull());
+    expect(screen.getByText("Stays")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Delete transaction?" }),
+    ).not.toBeInTheDocument();
+    expect(mockListTransactions).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not remove the row optimistically before the refetch resolves", async () => {
+    let resolveSecondFetch: (value: {
+      transactions: ReturnType<typeof makeTransaction>[];
+      total_count: number;
+    }) => void = () => {};
+    mockListTransactions
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 1, description: "Target" })],
+        total_count: 1,
+      })
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveSecondFetch = resolve;
+        }),
+      );
+    mockDeleteTransaction.mockResolvedValue(undefined);
+
+    render(<Transactions />);
+    await screen.findByText("Target");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Delete transaction: Target" }),
+    );
+    await screen.findByRole("heading", { name: "Delete transaction?" });
+    const deleteDialog = screen.getByRole("dialog", {
+      name: "Delete transaction?",
+    });
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", {
+        name: "Delete Transaction",
+      }),
+    );
+
+    // The backend call resolved, but the canonical refetch has not - the
+    // row must still be present (no optimistic removal). Scoped to the
+    // table since the (closed, but still-mounted-per-jsdom) confirmation
+    // dialog also shows the transaction's description in its summary until
+    // the refetch actually removes it from `transactions`.
+    await waitFor(() => expect(mockDeleteTransaction).toHaveBeenCalled());
+    const table = screen.getByRole("table");
+    expect(within(table).getByText("Target")).toBeInTheDocument();
+
+    resolveSecondFetch({ transactions: [], total_count: 0 });
+    await waitFor(() => expect(screen.queryByText("Target")).toBeNull());
+  });
+
+  it("transitions to the empty state when the last transaction is deleted, with New Transaction still available", async () => {
+    mockListTransactions
+      .mockResolvedValueOnce({
+        transactions: [makeTransaction({ id: 1, description: "Only one" })],
+        total_count: 1,
+      })
+      .mockResolvedValueOnce({ transactions: [], total_count: 0 });
+    mockDeleteTransaction.mockResolvedValue(undefined);
+
+    render(<Transactions />);
+    await screen.findByText("Only one");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Delete transaction: Only one" }),
+    );
+    await screen.findByRole("heading", { name: "Delete transaction?" });
+    const deleteDialog = screen.getByRole("dialog", {
+      name: "Delete transaction?",
+    });
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", {
+        name: "Delete Transaction",
+      }),
+    );
+
+    expect(await screen.findByText("No transactions yet")).toBeInTheDocument();
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(
+      screen.getAllByRole("button", { name: "New Transaction" }).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("keeps the row in the table if deletion fails", async () => {
+    mockListTransactions.mockResolvedValue({
+      transactions: [makeTransaction({ id: 1, description: "Stubborn" })],
+      total_count: 1,
+    });
+    mockDeleteTransaction.mockRejectedValue(
+      '{"code":"database_error","message":"Something broke"}',
+    );
+
+    render(<Transactions />);
+    await screen.findByText("Stubborn");
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Delete transaction: Stubborn" }),
+    );
+    await screen.findByRole("heading", { name: "Delete transaction?" });
+    const deleteDialog = screen.getByRole("dialog", {
+      name: "Delete transaction?",
+    });
+    fireEvent.click(
+      within(deleteDialog).getByRole("button", {
+        name: "Delete Transaction",
+      }),
+    );
+
+    await screen.findByText("Something broke");
+    // Scoped to the table - the still-open confirmation dialog also shows
+    // "Stubborn" in its summary.
+    expect(
+      within(screen.getByRole("table")).getByText("Stubborn"),
+    ).toBeInTheDocument();
+    expect(mockListTransactions).toHaveBeenCalledTimes(1);
   });
 });

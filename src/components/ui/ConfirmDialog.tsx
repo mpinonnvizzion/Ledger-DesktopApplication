@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Dialog } from "./Dialog";
 import { Button } from "./Button";
 import { ErrorMessage } from "./ErrorMessage";
@@ -15,6 +16,10 @@ interface ConfirmDialogProps {
   loading?: boolean;
   /** Sanitized error from a failed confirm attempt, shown inside the dialog */
   error?: string;
+  /** Optional structured content rendered between the message and the error
+   * (e.g. a summary of the record about to be affected). Additive - existing
+   * callers that only pass a plain `message` are unaffected. */
+  children?: ReactNode;
 }
 
 export function ConfirmDialog({
@@ -28,6 +33,7 @@ export function ConfirmDialog({
   destructive = false,
   loading = false,
   error,
+  children,
 }: ConfirmDialogProps) {
   return (
     <Dialog
@@ -38,6 +44,7 @@ export function ConfirmDialog({
       preventClose={loading}
     >
       <p className="text-sm text-gray-700">{message}</p>
+      {children}
       {error && (
         <div className="mt-3">
           <ErrorMessage message={error} />

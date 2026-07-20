@@ -911,6 +911,24 @@ mod tests {
     }
 
     #[test]
+    fn delete_reverses_balance_for_expense() {
+        // delete_reverses_balance above only exercises a positive
+        // (income) amount; this covers the negative (expense) case, since
+        // Sprint 6 Phase B4's delete-transaction UI needs both directions
+        // verified even though the SQL itself (`balance - amount_minor`)
+        // has no sign-specific branch.
+        let (conn, f) = setup();
+        let repo = TransactionRepository::new(&conn);
+
+        let txn = repo.create(make_input(&f, -3000, "2026-07-15")).unwrap();
+        assert_eq!(repo.get_account_balance(f.acct_id).unwrap(), -3000);
+
+        repo.delete(txn.id).unwrap();
+        assert_eq!(repo.get_account_balance(f.acct_id).unwrap(), 0);
+        assert_balance_consistent(&conn, f.acct_id);
+    }
+
+    #[test]
     fn delete_nonexistent_returns_not_found() {
         let (conn, _) = setup();
         let repo = TransactionRepository::new(&conn);

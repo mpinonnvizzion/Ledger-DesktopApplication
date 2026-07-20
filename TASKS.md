@@ -338,7 +338,7 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 ---
 
-### Sprint 6: Transactions UI (In Progress)
+### Sprint 6: Transactions UI (Complete)
 
 **Objective:** A user can view, create, edit, and safely delete locally stored financial transactions across their accounts, with account balances updating automatically.
 
@@ -348,7 +348,10 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 - [x] Phase B1: Read-only transaction list (table, historical account/category label resolution) — completed 2026-07-19; account filter and pagination controls deferred to a later phase per this phase's actual scope; see `docs/sprint-notes/sprint-6.md`'s Phase B1 Implementation Notes
 - [x] Phase B2: Create transaction — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase B2 Implementation Notes
 - [x] Phase B3: Edit transaction — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase B3 Implementation Notes
-- [ ] Phase B4: Delete transaction
+- [x] Phase B4: Delete transaction — completed 2026-07-19; see `docs/sprint-notes/sprint-6.md`'s Phase B4 Implementation Notes
+- [x] Phase B5 (Transaction UX Review and Polish) evaluated and determined unnecessary — Sprint 6 closed without it, per `docs/sprint-notes/sprint-6.md`'s "Sprint 6 Closeout" section. Multi-field filtering, search, pagination controls, keyboard shortcuts, and `status` surfacing remain explicitly deferred, not silently dropped.
+
+**Sprint 6 complete.** Milestone 3 (Core Finance Features) remains In Progress — Sprint 7 (Categories UI) and Sprint 8 (Dashboard) are still unstarted; see [docs/milestones.md](docs/milestones.md), which is unchanged by this closeout.
 
 ---
 

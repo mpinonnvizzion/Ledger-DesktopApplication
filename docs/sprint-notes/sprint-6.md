@@ -1,7 +1,7 @@
 # Sprint 6: Transactions UI — Implementation Plan
 
-**Status:** In Progress — Phase A (Transaction UI Foundation), Phase B1 (Read-Only Transaction List), Phase B2 (Create Transaction), and Phase B3 (Edit Transaction) complete; Phase B4 (Delete Transaction) not started
-**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19, Phase B2 completed 2026-07-19, Phase B3 completed 2026-07-19)
+**Status:** Complete — Phase A (Transaction UI Foundation), Phase B1 (Read-Only Transaction List), Phase B2 (Create Transaction), Phase B3 (Edit Transaction), and Phase B4 (Delete Transaction) all complete. Phase B5 (Transaction UX Review and Polish) evaluated and not scheduled — see "Sprint 6 Closeout" below.
+**Date:** 2026-07-18 (ratified 2026-07-19, Phase A completed 2026-07-19, Phase B1 completed 2026-07-19, Phase B2 completed 2026-07-19, Phase B3 completed 2026-07-19, Phase B4 completed 2026-07-19, sprint closed 2026-07-19)
 
 ---
 
@@ -556,18 +556,83 @@ Confirmed by direct inspection of `TransactionRepository::update`: `account_id`,
 
 **Commit boundary:** one commit, scoped to Phase B4 only.
 
+#### Phase B4 Implementation Notes (2026-07-19)
+
+Transaction deletion implemented. This is the last of the four core transaction workflows (B1 list, B2 create, B3 edit, B4 delete) — see "Sprint 6 Closeout" below for whether a B5 is warranted.
+
+**Files created:**
+- `src/components/transactions/DeleteTransactionDialog.tsx`
+- `src/components/transactions/DeleteTransactionDialog.test.tsx` — 21 tests
+
+**Files modified:**
+- `src/components/ui/ConfirmDialog.tsx` — added an optional `children?: ReactNode` prop, rendered between the message and the error, so a rich transaction summary can be shown inside the shared confirmation dialog rather than only a plain string. Additive and backward compatible (mirrors the exact precedent of adding `ConfirmDialog`'s `error` prop during Accounts Phase B4 — "This is additive and backward compatible — no existing usage or test needed to change"); all 8 pre-existing `ConfirmDialog` tests pass unmodified.
+- `src/pages/Transactions.tsx` — Delete button added to the Actions column alongside Edit, `deletingTransactionId`/`showDeleteDialog` state, dialog wiring, canonical refetch on success (reuses the existing `retryToken` mechanism); header copy updated now that create/edit/delete are all present
+- `src/pages/Transactions.test.tsx` — 1 Phase B1-era assertion updated to reflect that delete now exists (was asserting no Delete button anywhere; now asserts no filter/search/pagination/transfer controls, which are the workflows still actually absent), 11 new integration tests
+- `src-tauri/src/repositories/transaction.rs` — added `delete_reverses_balance_for_expense`, one narrowly scoped Rust test (see "Backend balance behavior" below)
+
+**Deviation from this plan's original wording:** the actual Phase B4 instructions (issued after this plan was written) required a structured transaction summary (description, amount, type, account, date) inside the confirmation dialog, not the single sentence this section originally proposed ("Delete this transaction? This cannot be undone. The account balance will be adjusted."). Implemented via `ConfirmDialog`'s new `children` slot rather than inventing a parallel dialog shell. The confirmation body does **not** claim the account balance will be adjusted in the message text itself (that claim, while true, was replaced by showing the actual Amount/Type/Account being affected, which is more concrete and verifiable by the user than a generic promise).
+
+**Exact `deleteTransaction` contract used** (verified directly against `src-tauri/src/commands/transaction.rs` and `src/api/transactions.ts`):
+```
+deleteTransaction(id: number): Promise<void>
+```
+A single required argument, no returned data. `DeleteTransactionDialog` calls it with exactly `transaction.id` and nothing else.
+
+**Confirmation-dialog content:** title "Delete transaction?"; body states the deletion is permanent and cannot be undone; a definition-list summary of Description, Amount (sign-formatted via the existing `formatSignedAmount`/`amountDisplayClass`, matching the table exactly), Type (`directionLabel(directionFromAmount(...))`, matching the table exactly), Account (`accountDisplayLabel(accountsById.get(...))` — the same historical-lookup map the read-only table uses, so an archived account's name still resolves), and Date (`formatTransactionDate`, matching the table exactly). Category is not shown, per this phase's own explicit "not required" allowance — kept minimal. No new formatting convention was introduced; every value reuses an existing Phase A/B1 helper.
+
+**Delete workflow:** clicking Delete stores the row's id in `Transactions.tsx` state and opens the dialog; the dialog renders the transaction's *current* values (looked up fresh from the `transactions` array each render, not a snapshot captured at click time) rather than deleting immediately. Confirming calls `deleteTransaction`, disables Cancel and the confirm button, and blocks Escape/close via `ConfirmDialog`'s existing `preventClose={loading}` behavior (already used for Accounts' archive flow — no new mechanism needed). On failure, the dialog stays open, the transaction summary remains visible (the `transaction` prop hasn't changed), and a sanitized message appears via `ConfirmDialog`'s existing `error` prop. On success, the dialog closes and `Transactions.tsx` canonically refetches (see below) — no optimistic row removal anywhere in the diff.
+
+**Canonical-refetch behavior:** identical mechanism to create/edit — `onDeleted` closes the dialog and bumps the existing `retryToken`, triggering a fresh `listTransactions` call. The deleted row disappears only once that refetch resolves and no longer includes it; `total_count` comes from that same response. Tested explicitly: the row remains visible while the delete request is in flight and the refetch is still pending, confirming no optimistic removal.
+
+**Final-row empty-state behavior:** deleting the only remaining transaction causes the next refetch to return `{ transactions: [], total_count: 0 }`, which the existing B1 empty-state branch already handles with no new code — the table unmounts, `EmptyState` renders, and "New Transaction" remains available (gated the same way it always was, on the page being in a usable state, unaffected by this phase).
+
+**Backend balance-reversal behavior (inspected, not modified — `TransactionRepository::delete`):**
+```rust
+pub fn delete(&self, id: i64) -> Result<(), DomainError> {
+    let existing = self.get_by_id(id)?;
+    let tx = self.conn.unchecked_transaction()?;
+    tx.execute(
+        "UPDATE accounts SET balance = balance - ?1, updated_at = datetime('now') WHERE id = ?2",
+        rusqlite::params![existing.amount_minor, existing.account_id],
+    )?;
+    tx.execute("DELETE FROM transactions WHERE id = ?1", rusqlite::params![id])?;
+    tx.commit()?;
+    Ok(())
+}
+```
+- **Expense deletion** (`amount_minor` negative, e.g. `-1500`): `balance - (-1500) = balance + 1500` — the balance **increases** by the expense magnitude, exactly as expected.
+- **Income deletion** (`amount_minor` positive, e.g. `4250`): `balance - 4250` — the balance **decreases** by the income magnitude, exactly as expected.
+- **Atomicity:** the balance `UPDATE` and the row `DELETE` execute inside one `unchecked_transaction()`, committed together via a single `tx.commit()`. If either statement's `?` returns an error, the function returns before `commit()` is reached; the uncommitted transaction is dropped, and SQLite/rusqlite roll it back automatically. Nothing partially applies — either both the balance reversal and the row deletion happen, or neither does.
+- **Currency plays no role** in the arithmetic, matching create and update.
+- **Archived-account deletion is fully supported**: `delete()` performs no `is_active` check anywhere — it doesn't even look up the account's active status, only its id (for the balance `UPDATE`'s `WHERE` clause). This matches the same permissiveness already documented for create (Phase A/B1/B2) and update (Phase B3).
+- **Rust test coverage:** `delete_reverses_balance` (pre-existing, covers a positive/income amount) and `delete_reverses_balance_for_expense` (added this phase, covers a negative/expense amount — the SQL has no sign-specific branch, but the income case was the only one with direct test coverage before this phase). No test was added for a forced mid-transaction rollback: the atomicity guarantee here is the same structural pattern (single `unchecked_transaction()` + `commit()`, error-propagation-drops-uncommitted-tx) already used and already proven correct by `create`/`update`'s own equivalent tests; forcing a genuine failure between the two statements would require an artificial fault-injection point that does not otherwise exist in the codebase, which would be adding backend complexity solely for test convenience — explicitly out of scope for this phase.
+
+**Error handling:** failures are sanitized via the existing `parseCommandError`, identical to every other transaction dialog — no Tauri command names, Rust type names, SQL, paths, or stack traces are ever shown. The error is not falsely described as "rolled back"; it simply reports that the transaction could not be deleted, using the backend's own sanitized message text.
+
+**Test results:** 310/310 frontend tests passing (net +32 over Phase B3's 278: 21 new in `DeleteTransactionDialog.test.tsx`, 11 new integration tests in `Transactions.test.tsx`, 1 Phase B1-era assertion updated in place rather than added/removed), `npm run lint` clean, `npm run format:check` clean, `npm run build` succeeds. `cargo check` clean; 105/105 Rust tests pass (102 unit + 3 integration, up from 104 with the one new expense-deletion test) — confirms the only backend change this phase was the additive test itself, no behavior change.
+
+**Manual verification:** not performed. As with every prior phase, no tooling exists in this environment to drive the native Tauri/WebView window — see the manual verification checklist reported alongside this phase's closeout.
+
+---
+
+## Sprint 6 Closeout — Phase B5 Determination (2026-07-19)
+
+Per Phase B4's own "Review checkpoint" above ("a good point to do the 'does this feel like one coherent feature' pass across B1–B4 together before deciding whether Phase B5 is warranted") and the Phase B5 section's own instruction ("If review after B4 finds none of these are needed yet, close Sprint 6 without a B5, exactly as Sprint 5 closed without needing an additional Accounts polish phase"):
+
+**Determination: no Phase B5 is scheduled.** None of Phase B5's candidate items (multi-field filtering, debounced search, keyboard shortcuts, surfacing `status`) were required to complete B1–B4's own scope, and none were discovered as blocking gaps during B1–B4's implementation. All twelve of this document's Acceptance Criteria (below) are satisfied by B1–B4 as delivered. **Sprint 6 (Transactions UI) is complete** with Phases A, B1, B2, B3, and B4 — the same closeout pattern Sprint 5 used (see `sprint-5.md`'s Review Notes: "No additional polish phase is required before Sprint 6"). Filtering, search, pagination controls, and the `status` field remain explicitly out of scope for any future work item, not silently dropped — they are named here as the deliberately deferred candidates, to be picked up only if a future sprint's product decision calls for them.
+
+This closeout does not change Milestone 3's own status in `docs/milestones.md` — Sprint 7 (Categories UI) and Sprint 8 (Dashboard) remain unstarted, so Milestone 3: Core Finance Features remains In Progress at the milestone level.
+
 ---
 
 ### Phase B5 — Transaction UX Review and Polish
 
-**Not scheduled by default.** Per the phase template's own instruction, this phase is only created if concrete review work remains after B1–B4 ship — it is not assumed here. Candidates to evaluate at that review point, none pre-committed:
+**Not scheduled.** See "Sprint 6 Closeout — Phase B5 Determination" immediately above. Candidates evaluated and explicitly deferred, none pre-committed to a future sprint:
 
 - Category filter, date-range filter, and direction filter on the transaction list (all trivially supported by the existing `listTransactions` contract, deferred from B1 to keep it minimal — see Scope).
 - Debounced text search.
 - Keyboard shortcuts (`Ctrl/Cmd+N` for new transaction, `Escape` to close dialogs — `Escape` already works today via the shared `Dialog` component's existing Escape handling; only the `Ctrl/Cmd+N` shortcut would be new).
 - Surfacing `status` (uncleared/cleared/reconciled) in the table and/or as an editable field.
-
-If review after B4 finds none of these are needed yet, close Sprint 6 without a B5, exactly as Sprint 5 closed without needing an additional Accounts polish phase (see `sprint-5.md`'s Review Notes: "No additional polish phase is required before Sprint 6").
 
 ---
 
