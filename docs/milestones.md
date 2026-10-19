@@ -193,7 +193,7 @@ Transform the completed data platform into a fully usable offline personal finan
 - Amount entry via a direction toggle (Income/Expense) plus a positive-amount input
 - See `docs/sprint-notes/sprint-6.md` for the implementation plan
 
-**Sprint 7: Categories UI**
+**Sprint 7: Categories UI (Complete)**
 - Categories page listing categories grouped by income/expense type
 - Create category dialog with duplicate-name conflict handling
 - Edit category dialog (system categories: name disabled)
@@ -220,7 +220,7 @@ Transform the completed data platform into a fully usable offline personal finan
 
 - [x] A user can manage workspaces and the reversible account lifecycle through the desktop UI (Sprint 5)
 - [ ] A user can create, view, edit, and delete transactions, with account balances updating automatically
-- [ ] A user can manage categories (list, create, edit, delete) with system-category protections enforced
+- [x] A user can manage categories (list, create, edit, delete) with system-category protections enforced
 - [ ] Dashboard displays summary data (balance, accounts, monthly totals, recent transactions)
 - [ ] All core workflows function offline without internet
 - [ ] No budgets, goals, reports, business finance, security/onboarding, licensing, or cloud code exists

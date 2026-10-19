@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 7 Complete — Categories UI — 2026-10-19
+
+Categories UI implemented per `docs/sprint-notes/sprint-7.md`. Users can view, create, edit, and delete categories through the desktop UI. System categories are protected from rename and deletion. This is a frontend-only sprint — no backend or schema changes.
+
+### Added
+
+- **Categories list page** (`src/pages/Categories.tsx`) — replaces placeholder with full category management page
+  - Income and expense sections with count headings
+  - System badge on seeded categories
+  - Edit button on all categories; delete button on user categories only
+  - Loading, empty, and error states with retry
+- **Create Category dialog** (`src/components/categories/CreateCategoryDialog.tsx`) — name and type fields with validation and duplicate conflict handling
+- **Edit Category dialog** (`src/components/categories/EditCategoryDialog.tsx`) — pre-populated name field; system categories show disabled input with explanation; category type shown as read-only text
+- **Delete category confirmation** — transaction count fetched on dialog open; warns about uncategorization; system categories have no delete affordance
+- **27 new frontend tests** (`src/pages/Categories.test.tsx`) — list rendering, create/edit/delete flows, system category protections, error handling
+
+### Notes
+
+- No backend changes. All category CRUD commands were implemented in Sprint 3. No new npm dependencies.
+- 337 total frontend tests (27 new), 18 test files, all passing.
+- Milestone 3 (Core Finance Features) remains In Progress — Sprint 8 (Dashboard) is the last remaining sprint.
+
 ## Sprint 6 Complete (Phase B4) — 2026-07-19
 
 Transaction deletion implemented, per the Sprint 6 (Transactions UI) plan in `docs/sprint-notes/sprint-6.md`. This is the last of the four core transaction workflows — with B4 done, **Sprint 6 (Transactions UI) is complete**; a Phase B5 polish phase was evaluated and determined unnecessary (see `docs/sprint-notes/sprint-6.md`'s "Sprint 6 Closeout" section). Milestone 3 (Core Finance Features) remains In Progress — Sprint 7 (Categories UI) and Sprint 8 (Dashboard) are still unstarted.

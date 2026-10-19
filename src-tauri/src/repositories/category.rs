@@ -130,14 +130,6 @@ impl<'a> CategoryRepository<'a> {
     pub fn update(&self, id: i64, input: UpdateCategoryInput) -> Result<Category, DomainError> {
         let existing = self.get_by_id(id)?;
 
-        if existing.is_system {
-            if input.name.is_some() {
-                return Err(DomainError::Validation(
-                    "System categories cannot be renamed.".into(),
-                ));
-            }
-        }
-
         let name = match input.name {
             Some(n) => {
                 let trimmed = n.trim().to_string();

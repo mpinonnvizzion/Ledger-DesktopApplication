@@ -303,11 +303,11 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 - [x] Archive/restore toggle (uses existing `is_active` field via `updateAccount` — non-destructive, reversible) (Phase B4)
 - [ ] Delete account with cascade warning (shows transaction count, offers "Archive Instead" alternative) — **deferred beyond Sprint 5, not scheduled**
 
-#### Phase C: Categories UI — not part of Sprint 5's delivered scope; scheduled as Sprint 7
-- [ ] Categories page with income/expense sections
-- [ ] Create category dialog with conflict handling
-- [ ] Edit category dialog (system categories: name disabled)
-- [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
+#### Phase C: Categories UI — not part of Sprint 5's delivered scope; delivered in Sprint 7 (complete)
+- [x] Categories page with income/expense sections
+- [x] Create category dialog with conflict handling
+- [x] Edit category dialog (system categories: name disabled)
+- [x] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
 
 #### Phase D: Transactions UI — not part of Sprint 5's delivered scope; scheduled as Sprint 6, see [docs/sprint-notes/sprint-6.md](docs/sprint-notes/sprint-6.md)
 - [ ] Transaction table with pagination (backend default ordering: date DESC, id DESC)
@@ -355,16 +355,19 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 ---
 
-### Sprint 7: Categories UI (Planned)
+### Sprint 7: Categories UI (Complete)
 
 **Objective:** A user can manage the categories used to organize transactions, with system categories protected from renaming or deletion.
 
-- [ ] Categories page with income/expense sections
-- [ ] Create category dialog with conflict handling
-- [ ] Edit category dialog (system categories: name disabled)
-- [ ] Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: disabled)
+**Implementation Plan:** [docs/sprint-notes/sprint-7.md](docs/sprint-notes/sprint-7.md)
 
-*Detailed phase breakdown to be written in a `docs/sprint-notes/sprint-7.md` implementation plan before work begins, per this project's Documentation First rule.*
+- [x] Phase A: Categories list page with income/expense sections, system badges, loading/empty/error states — completed 2026-10-19
+- [x] Phase B: Create category dialog with name/type fields, validation, conflict handling — completed 2026-10-19
+- [x] Phase C: Edit category dialog (system categories: name disabled with explanation; user categories: rename) — completed 2026-10-19
+- [x] Phase D: Delete category with confirmation (transaction count warning; system categories: no delete affordance) — completed 2026-10-19
+- [x] Phase E: Tests (27 new, 337 total frontend) and documentation — completed 2026-10-19
+
+**Sprint 7 complete.** Milestone 3 (Core Finance Features) remains In Progress — Sprint 8 (Dashboard) is still unstarted; see [docs/milestones.md](docs/milestones.md).
 
 ---
 
