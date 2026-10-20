@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 8 Complete — Dashboard — 2026-10-20
+
+Dashboard implemented per `docs/sprint-notes/sprint-8.md`. Users see an at-a-glance financial overview on launch: total balance, active account count, monthly income and expenses, and the 10 most recent transactions. This is a frontend-only sprint — no backend or schema changes. **Milestone 3 (Core Finance Features) is now complete.**
+
+### Added
+
+- **Dashboard page** (`src/pages/Dashboard.tsx`) — replaces placeholder with full financial overview
+  - Four summary cards: total balance (active accounts only), active account count, monthly income, monthly expenses
+  - Current month label (e.g., "October 2026")
+  - Recent transactions table (10 most recent) with account and category name resolution
+  - Independent loading and error handling per data source — one failing API doesn't break the whole page
+  - Empty state for new workspaces ("Welcome to Ledger")
+  - Cards show $0.00 gracefully when accounts exist but no transactions in the current month
+- **18 new frontend tests** (`src/pages/Dashboard.test.tsx`) — summary cards, total balance calculation, expense absolute value, recent transactions, empty states, partial failures, date range validation
+
+### Notes
+
+- No backend changes. All APIs (`listAccountsByWorkspace`, `getTransactionSummary`, `listTransactions`, `listCategoriesByWorkspace`) were implemented in earlier sprints. No new npm dependencies.
+- `getTransactionSummary` uses SQL aggregates, so the 500-row limitation from `listTransactions` does not apply to monthly totals.
+- 353 total frontend tests (18 new), 18 test files, all passing.
+- Milestone 3 (Core Finance Features) is complete — Sprints 5 through 8 all delivered.
+
 ## Sprint 7 Complete — Categories UI — 2026-10-19
 
 Categories UI implemented per `docs/sprint-notes/sprint-7.md`. Users can view, create, edit, and delete categories through the desktop UI. System categories are protected from rename and deletion. This is a frontend-only sprint — no backend or schema changes.

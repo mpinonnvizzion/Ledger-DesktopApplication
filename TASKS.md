@@ -371,18 +371,15 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 ---
 
-### Sprint 8: Dashboard (Planned)
+### Sprint 8: Dashboard (Complete)
 
 **Objective:** A user gets an at-a-glance summary of their finances on launch.
 
-- [ ] Total balance card (sum of active account balances)
-- [ ] Account count card
-- [ ] Monthly income card (500-row limitation documented if exceeded)
-- [ ] Monthly expenses card (500-row limitation documented if exceeded)
-- [ ] Recent transactions list (5-10 items)
-- [ ] Empty state for new users
+- [x] Phase A: Dashboard layout and summary cards (total balance, active accounts, monthly income, monthly expenses)
+- [x] Phase B: Recent transactions list (10 most recent with account/category resolution)
+- [x] Phase C: Tests (18 new → 353 total) and documentation updates
 
-*Detailed phase breakdown to be written in a `docs/sprint-notes/sprint-8.md` implementation plan before work begins, per this project's Documentation First rule.*
+**Sprint 8 complete.** Milestone 3 (Core Finance Features) is now complete. See [docs/milestones.md](docs/milestones.md).
 
 ---
 

@@ -44,9 +44,9 @@ Ledger Desktop is a professional finance application that places privacy, owners
 
 ## Project Status
 
-**Current Phase:** Sprint 7 — Categories UI (Complete) | Milestone 3: Core Finance Features (In Progress)
+**Current Phase:** Sprint 8 — Dashboard (Complete) | Milestone 3: Core Finance Features (Complete)
 
-Users can manage workspaces, accounts (create, edit, archive/restore), transactions (create, edit, delete with automatic balance updates), and categories (create, edit, delete with system-category protections) through the desktop UI — all backed by local SQLite persistence, sanitized error handling, and accessible dialogs. Sprint 8 (Dashboard) is the last remaining sprint in Milestone 3. See [docs/milestones.md](docs/milestones.md) for the full milestone plan.
+Users can manage workspaces, accounts (create, edit, archive/restore), transactions (create, edit, delete with automatic balance updates), and categories (create, edit, delete with system-category protections) through the desktop UI. The Dashboard provides an at-a-glance financial overview: total balance, active accounts, monthly income/expenses, and recent transactions — all backed by local SQLite persistence, sanitized error handling, and accessible dialogs. Milestone 3 is complete. See [docs/milestones.md](docs/milestones.md) for the full milestone plan.
 
 ## Getting Started
 

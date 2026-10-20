@@ -172,7 +172,7 @@ Build the complete local persistence layer that every finance feature depends on
 
 ## Milestone 3: Core Finance Features
 
-**Status:** In Progress
+**Status:** Complete
 **Sprints:** 5, 6, 7, 8
 **Roadmap Layer:** Daily Finance Workflow
 
@@ -187,7 +187,7 @@ Transform the completed data platform into a fully usable offline personal finan
 - Account UI: list, create, edit, archive/restore (permanent deletion deferred — see `docs/sprint-notes/sprint-5.md`)
 - Empty, loading, and error states; confirmation dialogs for archive
 
-**Sprint 6: Transactions UI**
+**Sprint 6: Transactions UI (Complete)**
 - Transaction table: list, create, edit, delete
 - Single-account filter and basic Previous/Next pagination
 - Amount entry via a direction toggle (Income/Expense) plus a positive-amount input
@@ -199,12 +199,13 @@ Transform the completed data platform into a fully usable offline personal finan
 - Edit category dialog (system categories: name disabled)
 - Delete category with confirmation (user categories: warns about uncategorized transactions; system categories: deletion disabled)
 
-**Sprint 8: Dashboard**
+**Sprint 8: Dashboard (Complete)**
 - Total balance card (sum of active account balances)
 - Active account count card
-- Monthly income / monthly expenses cards (500-row limitation documented if exceeded, per the Known API Gap in `docs/sprint-notes/sprint-5.md`)
-- Recent transactions list
+- Monthly income / monthly expenses cards (`getTransactionSummary` uses SQL aggregates — no row-count limitation)
+- Recent transactions list (10 most recent with account/category name resolution)
 - Empty state for new users
+- Independent per-section loading and error handling
 
 ### Out of Scope
 
@@ -219,18 +220,18 @@ Transform the completed data platform into a fully usable offline personal finan
 ### Exit Criteria
 
 - [x] A user can manage workspaces and the reversible account lifecycle through the desktop UI (Sprint 5)
-- [ ] A user can create, view, edit, and delete transactions, with account balances updating automatically
+- [x] A user can create, view, edit, and delete transactions, with account balances updating automatically
 - [x] A user can manage categories (list, create, edit, delete) with system-category protections enforced
-- [ ] Dashboard displays summary data (balance, accounts, monthly totals, recent transactions)
-- [ ] All core workflows function offline without internet
-- [ ] No budgets, goals, reports, business finance, security/onboarding, licensing, or cloud code exists
+- [x] Dashboard displays summary data (balance, accounts, monthly totals, recent transactions)
+- [x] All core workflows function offline without internet
+- [x] No budgets, goals, reports, business finance, security/onboarding, licensing, or cloud code exists
 
 ### Dependent Sprints
 
 - Sprint 5: Accounts UI (Complete)
-- Sprint 6: Transactions UI
-- Sprint 7: Categories UI
-- Sprint 8: Dashboard
+- Sprint 6: Transactions UI (Complete)
+- Sprint 7: Categories UI (Complete)
+- Sprint 8: Dashboard (Complete)
 
 ### Notes
 
@@ -270,7 +271,7 @@ Milestone 1: Application Foundation (Complete)
 Milestone 2: Local Data Platform (Complete)
     │
     ▼
-Milestone 3: Core Finance Features (In Progress — Sprints 5-8)
+Milestone 3: Core Finance Features (Complete — Sprints 5-8)
     │
     ▼
 Future Milestones (Unscheduled — see above)
