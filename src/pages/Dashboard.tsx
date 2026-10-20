@@ -3,9 +3,16 @@ import { useWorkspace } from "@/hooks/useWorkspace";
 import { listAccountsByWorkspace } from "@/api/accounts";
 import { listCategoriesByWorkspace } from "@/api/categories";
 import { listTransactions, getTransactionSummary } from "@/api/transactions";
+import { listBudgets, getCategorySpending } from "@/api/budgets";
 import { parseCommandError } from "@/lib/errors";
 import { formatAmount } from "@/lib/format";
-import type { Account, Category, Transaction } from "@/types/domain";
+import type {
+  Account,
+  Budget,
+  Category,
+  CategorySpending,
+  Transaction,
+} from "@/types/domain";
 import {
   accountDisplayLabel,
   amountDisplayClass,
@@ -77,6 +84,10 @@ export default function Dashboard() {
     new Map(),
   );
 
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [budgetSpending, setBudgetSpending] = useState<CategorySpending[]>([]);
+  const [budgetsLoaded, setBudgetsLoaded] = useState(false);
+
   const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
@@ -140,6 +151,28 @@ export default function Dashboard() {
         .finally(() => {
           if (!cancelled) setTransactionsLoading(false);
         });
+
+      const now = new Date();
+      const currentMonthNum = now.getMonth() + 1;
+      const currentYearNum = now.getFullYear();
+      setBudgetsLoaded(false);
+      Promise.all([
+        listBudgets(currentWorkspaceId, currentMonthNum, currentYearNum),
+        getCategorySpending(
+          currentWorkspaceId,
+          currentMonthNum,
+          currentYearNum,
+        ),
+      ])
+        .then(([budgetList, spendingList]) => {
+          if (cancelled) return;
+          setBudgets(budgetList);
+          setBudgetSpending(spendingList);
+          setBudgetsLoaded(true);
+        })
+        .catch(() => {
+          if (!cancelled) setBudgetsLoaded(false);
+        });
     });
 
     return () => {
@@ -155,6 +188,17 @@ export default function Dashboard() {
     () => activeAccounts.reduce((sum, a) => sum + a.balance, 0),
     [activeAccounts],
   );
+
+  const budgetOverCount = useMemo(() => {
+    if (!budgetsLoaded || budgets.length === 0) return 0;
+    const spendMap = new Map(
+      budgetSpending.map((s) => [s.category_id, s.spent_minor]),
+    );
+    return budgets.filter((b) => {
+      const spent = spendMap.get(b.category_id) ?? 0;
+      return spent >= b.amount_minor;
+    }).length;
+  }, [budgets, budgetSpending, budgetsLoaded]);
 
   function handleRetry() {
     setRetryToken((t) => t + 1);
@@ -261,6 +305,22 @@ export default function Dashboard() {
           </Card>
         )}
       </div>
+
+      {budgetsLoaded && budgets.length > 0 && (
+        <Card>
+          <p className="text-sm text-gray-500">Budget Status</p>
+          {budgetOverCount === 0 ? (
+            <p className="mt-1 text-sm font-medium text-green-700">
+              All {budgets.length} budget{budgets.length !== 1 ? "s" : ""} on
+              track
+            </p>
+          ) : (
+            <p className="mt-1 text-sm font-medium text-red-700">
+              {budgetOverCount} of {budgets.length} over budget
+            </p>
+          )}
+        </Card>
+      )}
 
       <section>
         <h3 className="text-lg font-medium text-gray-900">

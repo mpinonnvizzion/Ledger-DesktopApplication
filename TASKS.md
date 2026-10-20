@@ -387,15 +387,13 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 Covers Sprint 9 and Sprint 10. See [milestone details](docs/milestones.md#milestone-4-budgets--reports).
 
-### Sprint 9: Budgets (Planned)
+### Sprint 9: Budgets (Complete)
 
 **Objective:** A user can set monthly spending limits per expense category and track progress.
 
-- [ ] Phase A: Backend — migration, model, repository, commands, category spending aggregation, TypeScript wrappers, Rust tests
-- [ ] Phase B: Budgets page — list with progress bars, month navigation, over-budget indicators, sidebar navigation link
-- [ ] Phase C: Create and edit budget dialogs — category selector (expense only, filtered), amount input, validation
-- [ ] Phase D: Delete budget and Dashboard integration — budget summary card on Dashboard
-- [ ] Phase E: Tests and documentation
+- [x] Phase A: Backend — migration, model, repository, commands, category spending aggregation, TypeScript wrappers, Rust tests
+- [x] Phase B–D: Budgets page with progress bars, month navigation, create/edit/delete dialogs, Dashboard budget summary, sidebar navigation link
+- [x] Phase E: Tests (20 Rust + 27 frontend) and documentation
 
 *Detailed phase breakdown in `docs/sprint-notes/sprint-9.md`.*
 

@@ -253,13 +253,13 @@ Give users the tools to plan their spending with monthly category budgets and un
 
 ### Scope
 
-**Sprint 9: Budgets**
+**Sprint 9: Budgets (Complete)**
 - Budget entity: monthly spending limit per category, stored in integer minor units (ADR 0008)
 - Backend: migration, model, repository, Tauri commands, TypeScript wrappers
 - New aggregation command: per-category spending for a date range (budget progress)
 - Budgets page: list budgets with progress bars, create/edit/delete dialogs
 - Month navigation (previous/next month)
-- Dashboard integration: budget summary or alert for over-budget categories
+- Dashboard integration: budget summary card for over-budget categories
 
 **Sprint 10: Reports**
 - Spending-by-category report (breakdown of expenses by category for a date range)
@@ -278,8 +278,8 @@ Give users the tools to plan their spending with monthly category budgets and un
 
 ### Exit Criteria
 
-- [ ] A user can create, view, edit, and delete monthly budgets per expense category
-- [ ] Budget progress shows actual spending vs budget amount for each category
+- [x] A user can create, view, edit, and delete monthly budgets per expense category
+- [x] Budget progress shows actual spending vs budget amount for each category
 - [ ] A user can view spending-by-category and income-vs-expense reports
 - [ ] A user can export transactions as CSV
 - [ ] All core workflows function offline without internet

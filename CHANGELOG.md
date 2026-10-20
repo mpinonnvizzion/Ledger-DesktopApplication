@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## Sprint 9 Complete — Budgets — 2026-10-20
+
+Budgets feature implemented per `docs/sprint-notes/sprint-9.md`. Users can set monthly spending limits per expense category, track progress with visual progress bars, navigate between months, and see a budget summary on the Dashboard. Full backend (migration, model, repository, commands) and frontend (page, dialogs, tests).
+
+### Added
+
+- **Budgets table** (`0006_budgets.sql`) — workspace+category+month+year UNIQUE constraint, expense-only enforcement, cascade on category delete
+- **Budget repository** (`src-tauri/src/repositories/budget.rs`) — CRUD, validation (expense-only categories, positive amounts, month/year range, duplicate detection), category spending aggregation via GROUP BY
+- **5 Tauri commands** — `create_budget`, `list_budgets`, `update_budget`, `delete_budget`, `get_category_spending`
+- **TypeScript API wrappers** (`src/api/budgets.ts`) and types (`Budget`, `CategorySpending`)
+- **Budgets page** (`src/pages/Budgets.tsx`) — budget list with progress bars (green <80%, yellow 80-99%, red 100%+), month navigation, budget summary, create/edit/delete dialogs, category filtering (expense only, excludes already-budgeted), empty/loading/error states
+- **Dashboard budget summary** — shows "X of Y over budget" or "All on track" when budgets exist, hidden when no budgets
+- **Sidebar navigation** — "Budgets" link added between Categories and Settings
+- **20 new Rust tests** for budget repository and category spending aggregation
+- **27 new frontend tests** (`src/pages/Budgets.test.tsx`) — budget list, progress bars, month navigation, create/edit/delete dialogs, summary line, accessibility
+
+### Notes
+
+- 125 total Rust tests (20 new), 380 total frontend tests (27 new), all passing.
+- Phases B, C, and D were combined since the budgets page, dialogs, and dashboard integration are tightly coupled.
+- `formatAmount` does not add comma separators — consistent with all existing pages.
+
 ## Sprint 8 Complete — Dashboard — 2026-10-20
 
 Dashboard implemented per `docs/sprint-notes/sprint-8.md`. Users see an at-a-glance financial overview on launch: total balance, active account count, monthly income and expenses, and the 10 most recent transactions. This is a frontend-only sprint — no backend or schema changes. **Milestone 3 (Core Finance Features) is now complete.**

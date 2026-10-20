@@ -11,6 +11,7 @@ import Dashboard from "@/pages/Dashboard";
 import Accounts from "@/pages/Accounts";
 import Transactions from "@/pages/Transactions";
 import Categories from "@/pages/Categories";
+import Budgets from "@/pages/Budgets";
 import Settings from "@/pages/Settings";
 
 function SeedingRecovery({
@@ -94,6 +95,7 @@ function AppRouter() {
           <Route path="/accounts" element={<Accounts />} />
           <Route path="/transactions" element={<Transactions />} />
           <Route path="/categories" element={<Categories />} />
+          <Route path="/budgets" element={<Budgets />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

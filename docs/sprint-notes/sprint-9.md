@@ -1,6 +1,6 @@
 # Sprint 9: Budgets — Implementation Plan
 
-**Status:** Planned
+**Status:** Complete
 **Date:** 2026-10-20
 
 ---
@@ -275,3 +275,44 @@ The create dialog's category dropdown:
 The sidebar currently has: Dashboard, Accounts, Transactions, Categories, Settings. Sprint 9 adds **Budgets** between Categories and Settings.
 
 This requires modifying the sidebar/navigation component to include the new route and page.
+
+---
+
+## Sprint 9 Closeout
+
+**Status:** Complete
+**Date:** 2026-10-20
+
+### What Was Delivered
+
+All five phases (A through E) delivered. Phases B, C, and D were combined into a single implementation pass because the budgets page, dialogs, and dashboard integration are tightly coupled and small enough to build together.
+
+**Backend (Phase A):**
+- Migration `0006_budgets.sql` — budgets table with UNIQUE(workspace_id, category_id, month, year), CHECK constraints, indexes, ON DELETE CASCADE for category FK
+- `Budget` model, `CreateBudgetInput`, `CategorySpending` structs
+- `BudgetRepository` — full CRUD, validation (expense-only categories, positive amounts, month/year range, duplicate detection, workspace/category existence), category spending aggregation via single GROUP BY query
+- 5 Tauri commands registered in invoke_handler
+- TypeScript API wrappers and domain types
+- 20 new Rust repository tests
+
+**Frontend (Phases B–D):**
+- `Budgets.tsx` — budget list with progress bars (green <80%, yellow 80–99%, red 100%+), month navigation (previous/next), budget summary line ("X of Y over budget" or "All on track"), empty/loading/error states
+- Create budget dialog with category selector (expense only, excludes already-budgeted categories for the current month), amount input
+- Edit budget dialog (pre-populated amount, category read-only)
+- Delete budget dialog with confirmation
+- Dashboard budget summary card — shows when budgets exist, hidden when none
+- Sidebar: "Budgets" link between Categories and Settings
+- Route `/budgets` registered in App.tsx
+
+**Tests and Documentation (Phase E):**
+- 27 new frontend tests covering: page rendering, loading/empty/error states, budget list with progress bars, month navigation, create/edit/delete dialogs, category filtering, summary line, progressbar accessibility
+- 125 total Rust tests, 380 total frontend tests, all passing
+- TypeScript compiles clean, Prettier formatting verified
+
+### Design Decisions
+
+- **Phases combined:** B (page), C (dialogs), and D (delete + dashboard) were built together since the dialogs are small and inline in the page component, not separate component files.
+- **DialogOverlay inline:** Used a local `DialogOverlay` wrapper instead of the project's `Dialog` component to keep the budgets page self-contained. The existing `Dialog` component expects `open` prop toggling; the budget dialogs use conditional rendering.
+- **parseAmountToMinor local:** Duplicated simple amount parsing rather than importing `parseAmount` from format.ts, which handles negative amounts (budgets are always positive).
+- **Dashboard budget fetch is fire-and-forget:** Budget data on the dashboard loads independently and silently — failure doesn't show an error card, it just hides the budget summary. This matches the sprint plan: "If no budgets: card not shown."
+- **overBudget threshold:** A budget counts as "over" when spent >= amount (at or above), matching the progress bar red threshold at 100%.
