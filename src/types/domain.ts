@@ -147,3 +147,19 @@ export interface TransactionSummary {
   net_minor: number;
   transaction_count: number;
 }
+
+export interface Budget {
+  id: number;
+  workspace_id: number;
+  category_id: number;
+  amount_minor: number;
+  month: number;
+  year: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CategorySpending {
+  category_id: number;
+  spent_minor: number;
+}

@@ -241,13 +241,61 @@ This created a temporary conflict between the delivered scope and this document'
 
 ---
 
+## Milestone 4: Budgets & Reports
+
+**Status:** In Progress
+**Sprints:** 9, 10
+**Roadmap Layer:** Financial Planning & Insights
+
+### Objective
+
+Give users the tools to plan their spending with monthly category budgets and understand their finances through reports — spending breakdowns, income-vs-expense comparisons, and data export. All offline, all local.
+
+### Scope
+
+**Sprint 9: Budgets**
+- Budget entity: monthly spending limit per category, stored in integer minor units (ADR 0008)
+- Backend: migration, model, repository, Tauri commands, TypeScript wrappers
+- New aggregation command: per-category spending for a date range (budget progress)
+- Budgets page: list budgets with progress bars, create/edit/delete dialogs
+- Month navigation (previous/next month)
+- Dashboard integration: budget summary or alert for over-budget categories
+
+**Sprint 10: Reports**
+- Spending-by-category report (breakdown of expenses by category for a date range)
+- Income vs expenses report (monthly comparison across multiple months)
+- CSV export of transactions (filtered or full)
+- Reports page with report selector and date range controls
+
+### Out of Scope
+
+- Savings goals (separate future domain)
+- Multi-month or yearly budget rollover
+- Budget templates or copying budgets between months
+- Charts or graphs (text/table-based reports only for Sprint 10; charting deferred)
+- Profit/loss for business workspaces (deferred to Business Finance milestone)
+- Dashboard report widgets beyond budget summary
+
+### Exit Criteria
+
+- [ ] A user can create, view, edit, and delete monthly budgets per expense category
+- [ ] Budget progress shows actual spending vs budget amount for each category
+- [ ] A user can view spending-by-category and income-vs-expense reports
+- [ ] A user can export transactions as CSV
+- [ ] All core workflows function offline without internet
+
+### Dependent Sprints
+
+- Sprint 9: Budgets
+- Sprint 10: Reports
+
+---
+
 ## Future Milestones (Unscheduled)
 
-The following product domains follow Milestone 3 but do not yet have assigned sprint numbers or a committed detailed schedule. Each one was previously documented with more specific scope (in this file's prior revisions and in `docs/business/ROADMAP.md`); that scope is retained below as a placeholder so it isn't lost, but it should be treated as a starting point for replanning, not a ratified sprint plan. Detailed sprint-level plans (objective, phases, exit criteria) will be written when each domain is next picked up, per this project's [Documentation First](../CLAUDE.md) rule.
+The following product domains follow Milestone 4 but do not yet have assigned sprint numbers or a committed detailed schedule. Each one was previously documented with more specific scope (in this file's prior revisions and in `docs/business/ROADMAP.md`); that scope is retained below as a placeholder so it isn't lost, but it should be treated as a starting point for replanning, not a ratified sprint plan. Detailed sprint-level plans (objective, phases, exit criteria) will be written when each domain is next picked up, per this project's [Documentation First](../CLAUDE.md) rule.
 
-- **Future: Budgets** — Monthly budget creation, editing, and progress tracking.
 - **Future: Goals** — Savings goals.
-- **Future: Reports** — Spending-by-category report, income-vs-expense report, month comparison view, basic profit/loss for business workspaces, dashboard report widgets, CSV import/export.
 - **Future: Security & Onboarding** — First-launch onboarding flow, local password/PIN setup, app unlock screen, auto-lock setting, local database security design, keychain integration research, backup reminder and privacy explanation, settings foundation.
 - **Future: Business Finance** — Client and vendor management, invoice creation with line items, invoice status tracking, invoice PDF/export, receipt attachment on transactions, accounts payable/receivable tracking, business workspace reports.
 - **Future: Commercial Readiness** — License activation flow, trial mode, license status UI, device activation policy, Stripe purchase flow documentation, update policy documentation, terms/privacy/support documentation, release notes structure.
@@ -258,7 +306,7 @@ The following product domains follow Milestone 3 but do not yet have assigned sp
 
 ### Sequencing
 
-Ordering among these placeholders is not yet finalized as a formal sprint sequence. The one fixed constraint carried over from prior planning: **Optional Connected Services (Plaid) remains positioned after commercial readiness** — the local product must be excellent without bank sync before Plaid is introduced, per [ADR 0005](adr/0005-plaid-requires-cloud-relay.md), [ADR 0006](adr/0006-one-time-purchase-with-optional-subscriptions.md), and the [Roadmap](business/ROADMAP.md). Beyond that constraint, the Product Owner will assign sprint numbers and write detailed plans as each domain is next picked up.
+Ordering among these placeholders is not yet finalized as a formal sprint sequence. The one fixed constraint carried over from prior planning: **Optional Connected Services (Plaid) remains positioned after commercial readiness** — the local product must be excellent without bank sync before Plaid is introduced, per [ADR 0005](adr/0005-plaid-requires-cloud-relay.md), [ADR 0006](adr/0006-one-time-purchase-with-optional-subscriptions.md), and the [Roadmap](business/ROADMAP.md). Beyond that constraint, the Product Owner will assign sprint numbers and write detailed plans as each domain is next picked up. Budgets and Reports have been assigned to Milestone 4 (Sprints 9–10).
 
 ---
 
@@ -272,6 +320,9 @@ Milestone 2: Local Data Platform (Complete)
     │
     ▼
 Milestone 3: Core Finance Features (Complete — Sprints 5-8)
+    │
+    ▼
+Milestone 4: Budgets & Reports (In Progress — Sprints 9-10)
     │
     ▼
 Future Milestones (Unscheduled — see above)

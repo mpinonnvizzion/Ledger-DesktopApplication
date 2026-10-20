@@ -383,13 +383,40 @@ Covers Sprints 5, 6, 7, 8. See [milestone details](docs/milestones.md#milestone-
 
 ---
 
+## Milestone 4: Budgets & Reports (In Progress)
+
+Covers Sprint 9 and Sprint 10. See [milestone details](docs/milestones.md#milestone-4-budgets--reports).
+
+### Sprint 9: Budgets (Planned)
+
+**Objective:** A user can set monthly spending limits per expense category and track progress.
+
+- [ ] Phase A: Backend — migration, model, repository, commands, category spending aggregation, TypeScript wrappers, Rust tests
+- [ ] Phase B: Budgets page — list with progress bars, month navigation, over-budget indicators, sidebar navigation link
+- [ ] Phase C: Create and edit budget dialogs — category selector (expense only, filtered), amount input, validation
+- [ ] Phase D: Delete budget and Dashboard integration — budget summary card on Dashboard
+- [ ] Phase E: Tests and documentation
+
+*Detailed phase breakdown in `docs/sprint-notes/sprint-9.md`.*
+
+### Sprint 10: Reports (Planned)
+
+**Objective:** A user can view spending breakdowns, income-vs-expense comparisons, and export transactions as CSV.
+
+- [ ] Spending-by-category report
+- [ ] Income vs expenses report (monthly comparison)
+- [ ] CSV export of transactions
+- [ ] Reports page with report selector and date range controls
+
+*Detailed phase breakdown to be written in a `docs/sprint-notes/sprint-10.md` implementation plan before work begins.*
+
+---
+
 ## Future Milestones (Unscheduled)
 
-The following product domains follow Milestone 3 but do not yet have assigned sprint numbers, per the 2026-07-19 Product Owner decision recorded in the Sprint 5 note above. Budgets, Goals, and Reports are moved out of Milestone 3 and will be replanned later as separate product domains rather than one immediate sprint. Security/Onboarding, Business Finance, and Commercial Readiness content previously numbered as Sprints 7-9, 11, and 12 is preserved here without sprint numbers, since those numbers are now used by Categories UI and Dashboard. See [docs/milestones.md](docs/milestones.md#future-milestones-unscheduled) for the authoritative version of this list.
+The following product domains follow Milestone 4 but do not yet have assigned sprint numbers. See [docs/milestones.md](docs/milestones.md#future-milestones-unscheduled) for the authoritative version of this list.
 
-- **Future: Budgets** — Monthly budget creation, editing, and progress tracking.
 - **Future: Goals** — Savings goals.
-- **Future: Reports** — Spending-by-category report, income-vs-expense report, month comparison view, basic profit/loss for business workspaces, dashboard report widgets, CSV import/export.
 - **Future: Security & Onboarding** — First-launch onboarding flow, local password/PIN setup, app unlock screen, auto-lock setting, local database security design, keychain integration research, backup reminder and privacy explanation, settings foundation.
 - **Future: Business Finance** — Client and vendor management, invoice creation with line items, invoice status tracking, invoice PDF/export, receipt attachment on transactions, accounts payable/receivable tracking, business workspace reports.
 - **Future: Commercial Readiness** — License activation flow, trial mode, license status UI, device activation policy, Stripe purchase flow documentation, update policy documentation, terms/privacy/support documentation, release notes structure.

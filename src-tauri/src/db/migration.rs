@@ -35,6 +35,11 @@ fn embedded_migrations() -> Vec<Migration> {
             name: "transactions",
             sql: include_str!("../../migrations/0005_transactions.sql"),
         },
+        Migration {
+            version: 6,
+            name: "budgets",
+            sql: include_str!("../../migrations/0006_budgets.sql"),
+        },
     ]
 }
 

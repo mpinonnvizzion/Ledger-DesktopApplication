@@ -57,6 +57,11 @@ pub fn run() {
             commands::transaction::get_account_balance,
             commands::transaction::verify_account_balance,
             commands::transaction::rebuild_account_balance,
+            commands::budget::create_budget,
+            commands::budget::list_budgets,
+            commands::budget::update_budget,
+            commands::budget::delete_budget,
+            commands::budget::get_category_spending,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
